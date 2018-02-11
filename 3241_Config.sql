@@ -1,7 +1,7 @@
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 
-CREATE DATABASE IF NOT EXISTS `cse2341_project`;
-USE `cse2341_project`;
+CREATE DATABASE IF NOT EXISTS `cse3241_project`;
+USE `cse3241_project`;
 
 DROP TABLE IF EXISTS `user`;
 
@@ -24,11 +24,11 @@ CREATE TABLE `garage` (
 DROP TABLE IF EXISTS `parking_spot`;
 
 CREATE TABLE `parking_spot` (
+    `garage_id` int unsigned NOT NULL,
     `floor_no` int unsigned NOT NULL,
     `spot_no` int unsigned NOT NULL,
-    `garage_id` int unsigned NOT NULL,
     `state` int NOT NULL DEFAULT 1,
-    PRIMARY KEY (`floor_no`, `spot_no`),
+    PRIMARY KEY (`garage_id`, `floor_no`, `spot_no`),
     KEY `floor_no_idx` (`floor_no`),
     CONSTRAINT `garage_id_fk` FOREIGN KEY (`garage_id`) REFERENCES `garage` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
