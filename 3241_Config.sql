@@ -8,7 +8,7 @@ DROP TABLE IF EXISTS `user`;
 
 CREATE TABLE `user` (
     `id`           int unsigned  PRIMARY KEY,
-    `user_group`   int           NOT NULL,
+    `user_group`   int           NOT NULL DEFAULT 1,
     `name`         varchar(30)   NOT NULL,
     `login_name`   nvarchar(100) NOT NULL,
     `password`     varchar(60)   NOT NULL
