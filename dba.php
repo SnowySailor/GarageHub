@@ -15,7 +15,7 @@ class MySQLDataAccess {
     private $_oStmt;
 
     // Query class vars
-    private $_sQuery;
+    private $_sQuery = '';
     private $_aParams = array();
     private $_sTypes = '';
 
@@ -32,9 +32,9 @@ class MySQLDataAccess {
     }
 
     function clean() {
-        unset($this->_sQuery);
-        unset($this->_aParams);
-        unset($this->_sTypes);
+        $this->_sQuery = '';
+        $this->_aParams = array();
+        $this->_sTypes = '';
     }
 
     private function verifyDatabase() {
@@ -63,32 +63,81 @@ class MySQLDataAccess {
     // QUERIES
     // -- --------------------------
 
+    public function rawQuery($sQuery) {
+        $this->_sQuery = $sQuery;
+        return $this;
+    }
 
     public function select($sQuery) {
-        if (!isset($_sQuery)) $_sQuery = '';
         // Get values
         $this->_sQuery = 'SELECT ' . $sQuery;
         return $this;
     }
 
-    public function insert($sQuery) {
-        if (!isset($_sQuery)) $_sQuery = '';
+    public function insert($sTable, $aParams) {
         // Insert values
-        $this->_sQuery = 'INSERT ' . $sQuery;
+        $this->_sQuery = 'INSERT INTO ' . $sTable . ' (';
+        foreach ($aParams as $sName => $uValue) {
+            $this->_sQuery .= $sName . ', ';
+        }
+        $this->_sQuery = rtrim($this->_sQuery, ", ") . ') VALUES (';
+        foreach ($aParams as $sName => $uValue) {
+            $this->_sQuery .= '?, ';
+            $this->_aParams[] = $uValue;
+        }
+        $this->_sQuery = rtrim($this->_sQuery, ", ") . ')';
+        return $this->execute('insert');
+    }
+
+    public function update($sTable, $aParams, $aWhere) {
+        $this->_sQuery = 'UPDATE ' . $sTable . ' SET ';
+        foreach ($aParams as $sName => $uValue) {
+            $this->_sQuery .= $sName . ' = ?, ';
+            $this->_aParams[] = $uValue;
+        }
+        $this->_sQuery = rtrim($this->_sQuery, ', ');
+
+        if (count($aWhere)) {
+            $this->where($aWhere);
+        }
+
+        return $this->execute('update');
+    }
+
+    public function delete($sTable, $aWhere) {
+        $this->_sQuery = 'DELETE FROM ' . $sTable;
+
+        if (isset($aWhere)) {
+            $this->where($aWhere);
+        }
+
+        return $this->execute('update');
+    }
+
+    public function from($sTable, $sAlias) {
+        $this->_sQuery .= ' FROM ' . $sTable;
+        if (isset($sAlias) > 0)
+            $this->_sQuery .= ' AS ' . $sAlias;
         return $this;
     }
 
-    public function update($sQuery) {
-        if (!isset($_sQuery)) $_sQuery = '';
-        // Update values
-        $this->_sQuery = 'UPDATE ' . $sQuery;
-        return $this;
+    public function innerJoin($sTable, $sAlias, $aOn) {
+        return $this->_join('INNER', $sTable, $sAlias, $aOn);
     }
 
-    public function delete($sQuery) {
-        if (!isset($_sQuery)) $_sQuery = '';
-        // Delete values
-        $this->_sQuery = 'DELETE ' . $sQuery;
+    public function leftJoin($sTable, $sAlias, $aOn) {
+        return $this->_join('LEFT', $sTable, $sAlias, $aOn);
+    }
+
+    private function _join($sType, $sTable, $sAlias, $aOn) {
+        $this->_sQuery .= ' ' . $sType . ' JOIN ' . $sTable;
+        if (isset($sAlias) > 0) {
+            $this->_sQuery .= ' AS ' . $sAlias;
+        }
+
+        if (isset($aOn) > 0) {
+            $this->on($aOn);
+        }
         return $this;
     }
 
@@ -96,35 +145,71 @@ class MySQLDataAccess {
     // CLAUSES
     // -- --------------------------
 
-    public function from($sTable, $sAlias = '') {
-        $this->_sQuery .= ' FROM ' . $sTable;
-        if (strlen($sAlias) > 0)
-            $this->_sQuery .= ' AS ' . $sAlias;
-        return $this;
-    }
-
     public function where($aWhere) {
+        if (!isset($aWhere)) return $this;
         $aParams = array();
-        $sTypes = '';
         $sAppend = ' WHERE ';
         if (!is_array($aWhere)) {
             $sAppend .= $aWhere;
         } else {
-            foreach ($aWhere as $sName => $sValue) {
-                $sAppend  .= (count($aParams)==0 ? '' : 'AND ') . $sName . ' = ? ';
-                $sTypes   .= $this->getType($sValue);
-                $aParams[] = $sValue;
+            if ($this->isAssoc($aWhere)) {
+                // Associative array
+                foreach ($aWhere as $sName => $sValue) {
+                    $sAppend  .= (count($aParams)==0 ? '' : 'AND ') . $sName . ' = ? ';
+                    $aParams[] = $sValue;
+                }
+            } else {
+                // Tokens
             }
         }
 
         if (count($aParams) > 0) {
             // Append params and types
             $this->_aParams = array_merge($this->_aParams, $aParams);
-            $this->_sTypes .= $sTypes;
         }
 
         $this->_sQuery .= $sAppend;
         return $this;
+    }
+
+    private function on($aOn) {
+
+        if (!isset($aOn)) return $this;
+        $aParams = array();
+        $sAppend = ' ON ';
+        if (!is_array($aOn)) {
+            $sAppend .= $aOn;
+        } else {
+            if ($this->isAssoc($aOn)) {
+                // Associative array
+                foreach ($aOn as $sName => $sValue) {
+                    $sAppend  .= (count($aParams)==0 ? '' : 'AND ') . $sName . ' = ? ';
+                    $aParams[] = $sValue;
+                }
+            } else {
+                // Tokens
+            }
+        }
+
+        if (count($aParams) > 0) {
+            // Append params and types
+            $this->_aParams = array_merge($this->_aParams, $aParams);
+        }
+
+        $this->_sQuery .= $sAppend;
+        return $this;
+    }
+
+    public function orderBy() {
+
+    }
+
+    public function groupBy() {
+
+    }
+
+    public function having() {
+
     }
 
 
@@ -133,9 +218,15 @@ class MySQLDataAccess {
     // -- --------------------------
 
 
-    public function execute($sGetType = 'getRows') {
+    public function execute($sGetType = '') {
         if (!$this->verifyDatabase()) die("Error: execution attempted before a database connection was established.");
+
+
+        foreach ($this->_aParams as $uValue) {
+            $this->_sTypes .= $this->getType($uValue);
+        }
         if (count($this->_aParams) != strlen($this->_sTypes)) die("Mismatch: SQL parameter count does not match type count.");
+
         // Prepare query
         $this->_oStmt = $this->_oConnection->prepare($this->_sQuery);
         // Convert to array('sssi', value1, value2, value3, value4)
@@ -146,25 +237,34 @@ class MySQLDataAccess {
         }
         // Execute
         $this->_oStmt->execute();
+        if ($this->_oStmt->error) {
+            // Error occured
+            die($this->_oStmt->error);
+        }
 
         $uData;
-        switch (strtolower($sGetType)) {
-            case 'getrows':
-                $uData = $this->getRows();
-                break;
-            case 'getrow':
-                $uData = $this->getRows(1);
-                break;
-            case 'getfield':
-                $uData = $this->getRows(1);
-                if (count($uData) > 0)
-                    $uData = reset($uData[0]);
-                else
-                    $uData = NULL;
-                break;
-            default:
-                $uData = $this->getRows();
-                break;
+        if (strlen($sGetType) == 0 || in_array(strtolower($sGetType), array("insert", "update", "delete"))) {
+            $uData = $this->_oStmt->affected_rows;
+        } else {
+            switch (strtolower($sGetType)) {
+                case 'getrows':
+                    $uData = $this->getRows();
+                    break;
+                case 'getrow':
+                    $uData = $this->getRows(1);
+                    break;
+                case 'getfield':
+                    $uData = $this->getRows(1);
+                    if (count($uData) > 0)
+                        // Fancy way of getting the first value from an array of associative arrays
+                        $uData = reset($uData[0]);
+                    else
+                        $uData = NULL;
+                    break;
+                default:
+                    $uData = $this->_oStmt->affected_rows;
+                    break;
+            }
         }
         $this->clean();
         return $uData;
@@ -175,6 +275,7 @@ class MySQLDataAccess {
         $aRet = array();
         $oResult = $this->_oStmt->get_result();
         while($aRow = $oResult->fetch_assoc()) {
+            // If a limit was provided, make sure we stay at/under the limit
             if ($iLimit > -1 && count($aRet) >= $iLimit){
                 break;
             } else {
@@ -221,6 +322,11 @@ class MySQLDataAccess {
             default:
                 return 'b';
         }
+    }
+
+    public static function isAssoc(array $arr) {
+        if ($arr === array()) return false;
+        return array_keys($arr) !== range(0, count($arr) - 1);
     }
 }
 
