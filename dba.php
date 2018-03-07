@@ -122,11 +122,13 @@ class MySQLDataAccess {
     }
 
     public function innerJoin($sTable, $sAlias, $aOn) {
-        return $this->_join('INNER', $sTable, $sAlias, $aOn);
+        $this->_join('INNER', $sTable, $sAlias, $aOn);
+        return $this;
     }
 
     public function leftJoin($sTable, $sAlias, $aOn) {
-        return $this->_join('LEFT', $sTable, $sAlias, $aOn);
+        $this->_join('LEFT', $sTable, $sAlias, $aOn);
+        return $this;
     }
 
     private function _join($sType, $sTable, $sAlias, $aOn) {
@@ -221,7 +223,6 @@ class MySQLDataAccess {
     public function execute($sGetType = '') {
         if (!$this->verifyDatabase()) die("Error: execution attempted before a database connection was established.");
 
-
         foreach ($this->_aParams as $uValue) {
             $this->_sTypes .= $this->getType($uValue);
         }
@@ -229,12 +230,17 @@ class MySQLDataAccess {
 
         // Prepare query
         $this->_oStmt = $this->_oConnection->prepare($this->_sQuery);
+        if (!$this->_oStmt) {
+            // Failure
+            die($this->_oConnection->error);
+        }
         // Convert to array('sssi', value1, value2, value3, value4)
         $aToBind = array_merge(array($this->_sTypes), array_values($this->_aParams));
         if (count($aToBind) > 0 && strlen($this->_sTypes) > 0) {
             // Pass arbitrary length if we have parameters
             call_user_func_array(array(&$this->_oStmt, 'bind_param'), $this->refValues($aToBind));
         }
+
         // Execute
         $this->_oStmt->execute();
         if ($this->_oStmt->error) {
@@ -283,6 +289,16 @@ class MySQLDataAccess {
             }
         }
         return $aRet;
+    }
+
+    public function printQuery() {
+        echo $this->_sQuery;
+        echo "</br>";
+        print_r($this->_aParams);
+        echo "</br>";
+        echo $this->_sTypes;
+        echo "</br>";
+        echo "</br>";
     }
 
 
