@@ -2,8 +2,13 @@
 
 if (!defined('PROJECT_ONLINE')) exit('No dice!');
 
-class MySQLDataAccess {
+DEFINE("GT", '>');
+DEFINE("LT", '<');
+DEFINE("ET", '=');
+DEFINE("NE", '!=');
+DEFINE("LIKE", 'LIKE');
 
+class MySQLDataAccess {
 
     // -- --------------------------
     // CLASS VARIABLES
@@ -74,7 +79,7 @@ class MySQLDataAccess {
         return $this;
     }
 
-    public function insert($sTable, $aParams) {
+    public function insert($sTable, $aParams = []) {
         // Insert values
         $this->_sQuery = 'INSERT INTO ' . $sTable . ' (';
         foreach ($aParams as $sName => $uValue) {
@@ -89,7 +94,7 @@ class MySQLDataAccess {
         return $this->execute('insert');
     }
 
-    public function update($sTable, $aParams, $aWhere) {
+    public function update($sTable, $aParams = [], $aWhere = []) {
         $this->_sQuery = 'UPDATE ' . $sTable . ' SET ';
         foreach ($aParams as $sName => $uValue) {
             $this->_sQuery .= $sName . ' = ?, ';
@@ -104,41 +109,41 @@ class MySQLDataAccess {
         return $this->execute('update');
     }
 
-    public function delete($sTable, $aWhere) {
+    public function delete($sTable, $aWhere = []) {
         $this->_sQuery = 'DELETE FROM ' . $sTable;
 
-        if (isset($aWhere)) {
+        if (count($aWhere) > 0) {
             $this->where($aWhere);
         }
 
         return $this->execute('update');
     }
 
-    public function from($sTable, $sAlias) {
+    public function from($sTable, $sAlias = '') {
         $this->_sQuery .= ' FROM ' . $sTable;
         if (isset($sAlias) > 0)
             $this->_sQuery .= ' AS ' . $sAlias;
         return $this;
     }
 
-    public function innerJoin($sTable, $sAlias, $aOn) {
-        $this->_join('INNER', $sTable, $sAlias, $aOn);
+    public function innerJoin($sTable, $sAlias = '', $sOn = '', $aOn = []) {
+        $this->_join('INNER', $sTable, $sAlias, $sOn, $aOn);
         return $this;
     }
 
-    public function leftJoin($sTable, $sAlias, $aOn) {
-        $this->_join('LEFT', $sTable, $sAlias, $aOn);
+    public function leftJoin($sTable, $sAlias = '', $sOn = '', $aOn = []) {
+        $this->_join('LEFT', $sTable, $sAlias, $sOn, $aOn);
         return $this;
     }
 
-    private function _join($sType, $sTable, $sAlias, $aOn) {
+    private function _join($sType, $sTable, $sAlias = '', $sOn = '', $aOn = []) {
         $this->_sQuery .= ' ' . $sType . ' JOIN ' . $sTable;
-        if (isset($sAlias) > 0) {
+        if (strlen($sAlias) > 0) {
             $this->_sQuery .= ' AS ' . $sAlias;
         }
 
-        if (isset($aOn) > 0) {
-            $this->on($aOn);
+        if (count($aOn) > 0 || strlen($sOn) > 0) {
+            $this->on($aOn, $sOn);
         }
         return $this;
     }
@@ -161,7 +166,7 @@ class MySQLDataAccess {
                     $aParams[] = $sValue;
                 }
             } else {
-                // Tokens
+                // TODO
             }
         }
 
@@ -174,24 +179,29 @@ class MySQLDataAccess {
         return $this;
     }
 
-    private function on($aOn) {
-
-        if (!isset($aOn)) return $this;
+    private function on($aOn = [], $sOn = []) {
+        if (count($aOn) == 0 && strlen($sOn) == 0) return $this;
         $aParams = array();
-        $sAppend = ' ON ';
+        $sAppend = ' ON (';
         if (!is_array($aOn)) {
             $sAppend .= $aOn;
         } else {
             if ($this->isAssoc($aOn)) {
                 // Associative array
                 foreach ($aOn as $sName => $sValue) {
-                    $sAppend  .= (count($aParams)==0 ? '' : 'AND ') . $sName . ' = ? ';
+                    $sAppend  .= (count($aParams)==0 ? '' : ' AND ') . $sName . ' = ?';
                     $aParams[] = $sValue;
                 }
             } else {
-                // Tokens
+                // TODO
             }
         }
+
+        if (strlen($sOn) > 0) {
+            $sAppend .= (count($aParams)==0 ? $sOn : ' AND ' . $sOn);
+        }
+
+        $sAppend .= ')';
 
         if (count($aParams) > 0) {
             // Append params and types
@@ -202,16 +212,19 @@ class MySQLDataAccess {
         return $this;
     }
 
-    public function orderBy() {
-
+    public function orderBy($sOrder) {
+        $this->_sQuery .= ' ORDER BY ' . $sOrder;
+        return $this;
     }
 
-    public function groupBy() {
-
+    public function groupBy($sGroup) {
+        $this->_sQuery .= ' GROUP BY ' . $sGroup;
+        return $this;
     }
 
-    public function having() {
-
+    public function having($sHaving) {
+        $this->_sQuery .= ' HAVING ' . $sHaving;
+        return $this;
     }
 
 
@@ -221,6 +234,7 @@ class MySQLDataAccess {
 
 
     public function execute($sGetType = '') {
+        $this->printQuery();
         if (!$this->verifyDatabase()) die("Error: execution attempted before a database connection was established.");
 
         foreach ($this->_aParams as $uValue) {
