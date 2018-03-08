@@ -68,10 +68,10 @@ class MySQLDataAccess {
     // QUERIES
     // -- --------------------------
 
-    public function rawQuery($sQuery, $aParams) {
-        $this->_sQuery = $sQuery;
-        foreach ($aParams as $uValue) {
-            $this->_aParams[] = $uValue;
+    public function rawQuery($sQuery, ...$aParams) {
+        $this->_sQuery .= ' ' . $sQuery . ' ';
+        foreach ($aParams as $aParam) {
+            $this->_aParams[] = $aParam;
         }
         return $this;
     }
@@ -124,7 +124,7 @@ class MySQLDataAccess {
 
     public function from($sTable, $sAlias = '') {
         $this->_sQuery .= ' FROM ' . $sTable;
-        if (isset($sAlias) > 0)
+        if (strlen($sAlias) > 0)
             $this->_sQuery .= ' AS ' . $sAlias;
         return $this;
     }

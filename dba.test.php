@@ -3,15 +3,28 @@ define('PROJECT_ONLINE', 1);
 
 include 'dba.php';
 
-$id = $_GET['id'];
+$name = $_GET['name'];
+$date = $_GET['date'];
 
-$database = new MySQLDataAccess('localhost', 'root', 'rooty', 'cse3241_project');
-$aData = $database->select('*')
-                  ->from('garage', 'g')
-                  ->innerJoin('parking_spot', 'ps', 'ps.garage_id = g.id')
-                  ->where(array('ps.spot_no' => $id))
-                  ->execute('getRows');
-$aData = $database->rawQuery("select * from garage g inner join parking_spot ps on ps.garage_id = g.id where ps.spot_no = ?", array($id))->execute('getRows');
+ $database = new MySQLDataAccess('localhost', 'root', 'rooty', 'cse3241_project');
+// $aData = $database->select('*')
+//                   ->from('garage', 'g')
+//                   ->innerJoin('parking_spot', 'ps', 'ps.garage_id = g.id')
+//                   ->rawQuery('or ps.garage_id = ?', 1)
+//                   ->rawQuery("where ps.spot_no > ? and ps.spot_no < ?", 5, 10)
+//                   ->execute('getRows');
+
+// $aQuery = $database->select('*');
+// $aQuery = $aQuery->from('garage', 'g');
+// $aQuery = $aQuery->where(array('id' => 0))->execute('getRows');
+//$aData = $database->rawQuery("select * from garage g inner join parking_spot ps on ps.garage_id = g.id where ps.spot_no = ?", array($id))->execute('getRows');
+
+$res = $database->update('user', array(
+                            'name' => $name,
+                            'createdate' => $date
+                        ));
+
+$aData = $database->select('name')->from('user')->where(array('name' => $name))->execute('getRow');
 
 // $res = $database->insert('garage', array(
 //             'id' => 503,
