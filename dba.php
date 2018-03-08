@@ -68,8 +68,11 @@ class MySQLDataAccess {
     // QUERIES
     // -- --------------------------
 
-    public function rawQuery($sQuery) {
+    public function rawQuery($sQuery, $aParams) {
         $this->_sQuery = $sQuery;
+        foreach ($aParams as $uValue) {
+            $this->_aParams[] = $uValue;
+        }
         return $this;
     }
 
