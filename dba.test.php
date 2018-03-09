@@ -3,28 +3,35 @@ define('PROJECT_ONLINE', 1);
 
 include 'dba.php';
 
-$name = $_GET['name'];
-$date = $_GET['date'];
+$num1 = $_GET['num1'];
+$num2 = $_GET['num2'];
+$num3 = $_GET['num3'];
 
- $database = new MySQLDataAccess('localhost', 'root', 'rooty', 'cse3241_project');
-// $aData = $database->select('*')
-//                   ->from('garage', 'g')
-//                   ->innerJoin('parking_spot', 'ps', 'ps.garage_id = g.id')
-//                   ->rawQuery('or ps.garage_id = ?', 1)
-//                   ->rawQuery("where ps.spot_no > ? and ps.spot_no < ?", 5, 10)
-//                   ->execute('getRows');
+$database = new MySQLDataAccess('localhost', 'root', 'rooty', 'cse3241_project');
+$aData = $database->select('*')
+                  ->from('garage', 'g')
+                  ->innerJoin('parking_spot', 'ps', 'ps.garage_id = g.id', array('ps.garage_id' => $num1))
+                  ->rawQuery("WHERE ps.spot_no > ? and ps.spot_no < ?", $num2, $num3)
+                  ->orderBy('ps.spot_no DESC')
+                  ->execute('getRows');
 
 // $aQuery = $database->select('*');
 // $aQuery = $aQuery->from('garage', 'g');
 // $aQuery = $aQuery->where(array('id' => 0))->execute('getRows');
 //$aData = $database->rawQuery("select * from garage g inner join parking_spot ps on ps.garage_id = g.id where ps.spot_no = ?", array($id))->execute('getRows');
 
-$res = $database->update('user', array(
-                            'name' => $name,
-                            'createdate' => $date
-                        ));
+//$database2 = new MySQLDataAccess('localhost', 'root', 'rooty', 'cse3241_project');
 
-$aData = $database->select('name')->from('user')->where(array('name' => $name))->execute('getRow');
+//$q1 = $database2->select('*');
+//$q2 = $database->from('user')->where(array('id' => 2));
+//$aData = $q1->appendQuery($q2)->execute('getRows');
+
+// $res = $database->update('user', array(
+//                             'name' => $name,
+//                             'createdate' => $date
+//                         ));
+
+//$aData = $database->select('name')->from('user')->where(array('name' => $name))->execute('getRow');
 
 // $res = $database->insert('garage', array(
 //             'id' => 503,
@@ -32,13 +39,6 @@ $aData = $database->select('name')->from('user')->where(array('name' => $name))-
 //             'managed_by' => 1
 //         ));
 //var_dump($res);
-
-// $q = 'update user set createdate = ? where id = 1';
-// $con = new mysqli('localhost', 'root', 'rooty', 'cse3241_project');
-// $s = $con->prepare($q);
-// $a = '2017-01-02 13:57:12.935';
-// $s->bind_param('s', $a);
-// $s->execute();
 
 foreach ($aData as $aUser) {
     print_r($aUser);

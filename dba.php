@@ -33,7 +33,14 @@ class MySQLDataAccess {
     function __construct() {
         if (func_num_args() == 4) {
             $this->connect(func_get_arg(0),func_get_arg(1),func_get_arg(2),func_get_arg(3));
+            if (!$this->verifyDatabase()) { die("Unable to connect to database."); }
         }
+    }
+
+    function appendQuery(MySQLDataAccess $them) {
+        $aParams = array_merge(array($them->_sQuery), $them->_aParams);
+        call_user_func_array(array(&$this, 'rawQuery'), $this->refValues($aParams));
+        return $this;
     }
 
     function clean() {
@@ -119,7 +126,7 @@ class MySQLDataAccess {
             $this->where($aWhere);
         }
 
-        return $this->execute('update');
+        return $this->execute('delete');
     }
 
     public function from($sTable, $sAlias = '') {
@@ -168,8 +175,6 @@ class MySQLDataAccess {
                     $sAppend  .= (count($aParams)==0 ? '' : 'AND ') . $sName . ' = ? ';
                     $aParams[] = $sValue;
                 }
-            } else {
-                // TODO
             }
         }
 
@@ -182,10 +187,10 @@ class MySQLDataAccess {
         return $this;
     }
 
-    private function on($aOn = [], $sOn = []) {
+    private function on($aOn = [], $sOn = '') {
         if (count($aOn) == 0 && strlen($sOn) == 0) return $this;
         $aParams = array();
-        $sAppend = ' ON (';
+        $sAppend = ' ON ';
         if (!is_array($aOn)) {
             $sAppend .= $aOn;
         } else {
@@ -195,16 +200,12 @@ class MySQLDataAccess {
                     $sAppend  .= (count($aParams)==0 ? '' : ' AND ') . $sName . ' = ?';
                     $aParams[] = $sValue;
                 }
-            } else {
-                // TODO
             }
         }
 
         if (strlen($sOn) > 0) {
             $sAppend .= (count($aParams)==0 ? $sOn : ' AND ' . $sOn);
         }
-
-        $sAppend .= ')';
 
         if (count($aParams) > 0) {
             // Append params and types
@@ -285,7 +286,7 @@ class MySQLDataAccess {
                         $uData = NULL;
                     break;
                 default:
-                    $uData = $this->_oStmt->affected_rows;
+                    $uData = $this->_oStmt->getRows();
                     break;
             }
         }
@@ -309,8 +310,9 @@ class MySQLDataAccess {
     }
 
     public function printQuery() {
-        echo $this->_sQuery;
+        echo "Query: " . $this->_sQuery;
         echo "</br>";
+        echo "Params: ";
         print_r($this->_aParams);
         echo "</br>";
         echo $this->_sTypes;
