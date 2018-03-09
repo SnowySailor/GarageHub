@@ -10,6 +10,7 @@ DEFINE("LIKE", 'LIKE');
 
 class MySQLDataAccess {
 
+
     // -- --------------------------
     // CLASS VARIABLES
     // -- --------------------------
@@ -23,6 +24,7 @@ class MySQLDataAccess {
     private $_sQuery = '';
     private $_aParams = array();
     private $_sTypes = '';
+    private $_bTransactionActive = false;
 
 
     // -- --------------------------
@@ -70,10 +72,39 @@ class MySQLDataAccess {
         return $this;
     }
 
+    public function disconnect() {
+        $this->_oConnection->close();
+        if (isset($_oStmt)) unset($this->_oStmt);
+        $this->clean();
+    }
+
+    public function beginT() {
+        $this->_oConnection->autocommit(false);
+        $this->_oConnection->begin_transaction(MYSQLI_TRANS_START_READ_WRITE);
+        $this->_bTransactionActive = true;
+    }
+
+    public function commitT() {
+        if (!$this->_bTransactionActive) {
+            die("Error: attempt to commit transaction with no active transaction.");
+        }
+        $this->_oConnection->commit();
+        $this->_bTransactionActive = false;
+    }
+
+    public function rollbackT() {
+        if (!$this->_bTransactionActive) {
+            die("Error: attempt to rollback transaction with no active transactions.");
+        }
+        $this->_oConnection->rollback();
+        $this->_bTransactionActive = false;
+    }
+
 
     // -- --------------------------
     // QUERIES
     // -- --------------------------
+
 
     public function rawQuery($sQuery, ...$aParams) {
         $this->_sQuery .= ' ' . $sQuery . ' ';
@@ -158,9 +189,11 @@ class MySQLDataAccess {
         return $this;
     }
 
+
     // -- --------------------------
     // CLAUSES
     // -- --------------------------
+
 
     public function where($aWhere) {
         if (!isset($aWhere)) return $this;

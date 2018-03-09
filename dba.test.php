@@ -8,6 +8,10 @@ $num2 = $_GET['num2'];
 $num3 = $_GET['num3'];
 
 $database = new MySQLDataAccess('localhost', 'root', 'rooty', 'cse3241_project');
+$database->beginT();
+$database->rollbackT();
+$database->beginT();
+$database->commitT();
 $aData = $database->select('*')
                   ->from('garage', 'g')
                   ->innerJoin('parking_spot', 'ps', 'ps.garage_id = g.id', array('ps.garage_id' => $num1))
@@ -34,7 +38,7 @@ $aData = $database->select('*')
 //$aData = $database->select('name')->from('user')->where(array('name' => $name))->execute('getRow');
 
 // $res = $database->insert('garage', array(
-//             'id' => 503,
+//             'id' => 504,
 //             'name' => 'bob',
 //             'managed_by' => 1
 //         ));
