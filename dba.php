@@ -84,8 +84,8 @@ class MySQLDataAccess {
         if ($this->_bTransactionActive) {
             $this->debugAndDie("Error: attempt to begin transaction when transaction already active.");
         }
-        // Don't commit after each query; that's why we want these manual transactions
         $this->_bPreviousAutocommit = $this->getMySQLSetting("autocommit");
+        // Don't commit after each query; that's why we want these manual transactions
         $this->_oConnection->autocommit(false);
         $this->_oConnection->begin_transaction(MYSQLI_TRANS_START_READ_WRITE);
         $this->_bTransactionActive = true;
@@ -96,6 +96,7 @@ class MySQLDataAccess {
             $this->debugAndDie("Error: attempt to commit transaction with no active transaction.");
         }
         $this->_oConnection->commit();
+        // Restore previous autocommit value
         $this->_oConnection->autocommit($this->_bPreviousAutocommit);
         $this->_bTransactionActive = false;
     }
@@ -105,6 +106,7 @@ class MySQLDataAccess {
             $this->debugAndDie("Error: attempt to rollback transaction with no active transactions.");
         }
         $this->_oConnection->rollback();
+        // Restore previous autocommit value
         $this->_oConnection->autocommit($this->_bPreviousAutocommit);
         $this->_bTransactionActive = false;
     }
@@ -139,7 +141,6 @@ class MySQLDataAccess {
     }
 
     public function select($sQuery) {
-        // Get values
         $this->_sQuery = 'SELECT ' . $sQuery;
         return $this;
     }
@@ -148,36 +149,46 @@ class MySQLDataAccess {
         // Insert values
         $this->_sQuery = 'INSERT INTO ' . $sTable . ' (';
         foreach ($aParams as $sName => $uValue) {
+            // Building column names to put into the query
             $this->_sQuery .= $sName . ', ';
         }
         $this->_sQuery = rtrim($this->_sQuery, ", ") . ') VALUES (';
         foreach ($aParams as $sName => $uValue) {
+            // Putting parameters into query and param array
             $this->_sQuery .= '?, ';
             $this->_aParams[] = $uValue;
         }
         $this->_sQuery = rtrim($this->_sQuery, ", ") . ')';
+        // Run the insert, don't wait for user to exeute
         return $this->execute('insert');
     }
 
     public function update($sTable, $aParams = [], $aWhere = []) {
         $this->_sQuery = 'UPDATE ' . $sTable . ' SET ';
         foreach ($aParams as $sName => $uValue) {
+            // Building column names to put into the query
             $this->_sQuery .= $sName . ' = ?, ';
+            // Put param into class param array
             $this->_aParams[] = $uValue;
         }
+        // Trim the tailing
         $this->_sQuery = rtrim($this->_sQuery, ', ');
 
         if (count($aWhere)) {
+            // If there is a where statement, put that in as well
             $this->where($aWhere);
         }
 
+        // Run the update, don't wait for user to execute
         return $this->execute('update');
     }
 
+    // TODO: Allow aWhere to be a string and add ...$aParams?
     public function delete($sTable, $aWhere = []) {
         $this->_sQuery = 'DELETE FROM ' . $sTable;
 
-        if (count($aWhere) > 0) {
+        if (count($aWhere) > 0 || strlen($aWhere) > 0) {
+            // Hopefully there is a where clause
             $this->where($aWhere);
         }
 
@@ -186,8 +197,9 @@ class MySQLDataAccess {
 
     public function from($sTable, $sAlias = '') {
         $this->_sQuery .= ' FROM ' . $sTable;
-        if (strlen($sAlias) > 0)
+        if (strlen($sAlias) > 0) {
             $this->_sQuery .= ' AS ' . $sAlias;
+        }
         return $this;
     }
 
@@ -219,6 +231,7 @@ class MySQLDataAccess {
     // -- --------------------------
 
 
+    // TODO: allow $aWhere to be a string and add ...$aParams?
     public function where($aWhere) {
         if (!isset($aWhere)) return $this;
         $aParams = array();
@@ -244,6 +257,7 @@ class MySQLDataAccess {
         return $this;
     }
 
+    // TODO: add ...$aParams to end?
     private function on($aOn = [], $sOn = '') {
         if (count($aOn) == 0 && strlen($sOn) == 0) return $this;
         $aParams = array();
@@ -261,6 +275,8 @@ class MySQLDataAccess {
         }
 
         if (strlen($sOn) > 0) {
+            // If there was a string provided, we concat it with an AND
+            // TODO: allow user to specify AND or OR with their $sOn?
             $sAppend .= (count($aParams)==0 ? $sOn : ' AND ' . $sOn);
         }
 
@@ -299,8 +315,10 @@ class MySQLDataAccess {
         if (!$this->verifyDatabase()) $this->debugAndDie("Error: execution attempted before a database connection was established.");
 
         foreach ($this->_aParams as $uValue) {
+            // Get all the types of the params we have saved
             $this->_sTypes .= $this->getType($uValue);
         }
+        // Make sure that the parameter count and type count match. This should never trigger.
         if (count($this->_aParams) != strlen($this->_sTypes)) $this->debugAndDie("Mismatch: SQL parameter count does not match type count.");
 
         // Prepare query
@@ -309,8 +327,9 @@ class MySQLDataAccess {
             // Failure
             $this->debugAndDie($this->_oConnection->error);
         }
-        // Convert to array('sssi', value1, value2, value3, value4)
+        // Convert to array('sssi...etc.', value1, value2, value3, value4, etc.)
         $aToBind = array_merge(array($this->_sTypes), array_values($this->_aParams));
+        // If we have params to bind...
         if (count($aToBind) > 0 && strlen($this->_sTypes) > 0) {
             // Pass arbitrary length if we have parameters
             call_user_func_array(array(&$this->_oStmt, 'bind_param'), $this->refValues($aToBind));
@@ -323,10 +342,13 @@ class MySQLDataAccess {
             $this->debugAndDie($this->_oStmt->error);
         }
 
+        // Return data
         $uData;
         if (strlen($sGetType) == 0 || in_array(strtolower($sGetType), array("insert", "update", "delete"))) {
+            // If the query was an insert, update, or delete, we just need to get the # of affected rows
             $uData = $this->_oStmt->affected_rows;
         } else {
+            // If it was a select, we want to get some result
             switch (strtolower($sGetType)) {
                 case 'getrows':
                     $uData = $this->getRows();
@@ -343,6 +365,7 @@ class MySQLDataAccess {
                         $uData = NULL;
                     break;
                 default:
+                    // Default to getRows
                     $uData = $this->_oStmt->getRows();
                     break;
             }
@@ -360,6 +383,7 @@ class MySQLDataAccess {
             if ($iLimit > -1 && count($aRet) >= $iLimit){
                 break;
             } else {
+                // Toss associative array onto return array
                 $aRet[] = $aRow;
             }
         }
