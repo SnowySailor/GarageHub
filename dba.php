@@ -35,7 +35,7 @@ class MySQLDataAccess {
     function __construct() {
         if (func_num_args() == 4) {
             $this->connect(func_get_arg(0),func_get_arg(1),func_get_arg(2),func_get_arg(3));
-            if (!$this->verifyDatabase()) { die("Unable to connect to database."); }
+            if (!$this->verifyDatabase()) { $this->debugAndDie("Unable to connect to database."); }
         }
     }
 
@@ -51,6 +51,26 @@ class MySQLDataAccess {
         $this->_sTypes = '';
     }
 
+    public function reconnect($host, $user, $password, $database = -1) {
+        connect($host, $user, $password, $database);
+    }
+
+    public function connect($host, $user, $password, $database = -1) {
+        if ($database == -1) $this->debugAndDie("You must provide a database to connect to.");
+        // Establish connection
+        $oCon = new mysqli($host, $user, $password, $database) or $this->debugAndDie("Unable to connect to database.");
+        // Set set connection so we can use it later
+        $this->_oConnection = $oCon;
+        return $this;
+    }
+
+    public function disconnect() {
+        $this->_oConnection->close();
+        unset($this->_oConnection);
+        if (isset($_oStmt)) unset($this->_oStmt);
+        $this->clean();
+    }
+
     private function verifyDatabase() {
         return isset($this->_oConnection);
     }
@@ -59,26 +79,13 @@ class MySQLDataAccess {
         return isset($this->_oStmt);
     }
 
-    public function reconnect($host, $user, $password, $database = -1) {
-        connect($host, $user, $password, $database);
-    }
-
-    public function connect($host, $user, $password, $database = -1) {
-        if ($database == -1) die("You must provide a database to connect to.");
-        // Establish connection
-        $oCon = new mysqli($host, $user, $password, $database) or die("Unable to connect to database.");
-        // Set set connection so we can use it later
-        $this->_oConnection = $oCon;
-        return $this;
-    }
-
-    public function disconnect() {
-        $this->_oConnection->close();
-        if (isset($_oStmt)) unset($this->_oStmt);
-        $this->clean();
-    }
-
     public function beginT() {
+        if (!$this->verifyDatabase()) {
+            $this->debugAndDie("Error: attempt to begin transaction when no database connection established.");
+        }
+        if ($this->_bTransactionActive) {
+            $this->debugAndDie("Error: attempt to begin transaction when transaction already active.");
+        }
         $this->_oConnection->autocommit(false);
         $this->_oConnection->begin_transaction(MYSQLI_TRANS_START_READ_WRITE);
         $this->_bTransactionActive = true;
@@ -86,7 +93,7 @@ class MySQLDataAccess {
 
     public function commitT() {
         if (!$this->_bTransactionActive) {
-            die("Error: attempt to commit transaction with no active transaction.");
+            $this->debugAndDie("Error: attempt to commit transaction with no active transaction.");
         }
         $this->_oConnection->commit();
         $this->_bTransactionActive = false;
@@ -94,10 +101,16 @@ class MySQLDataAccess {
 
     public function rollbackT() {
         if (!$this->_bTransactionActive) {
-            die("Error: attempt to rollback transaction with no active transactions.");
+            $this->debugAndDie("Error: attempt to rollback transaction with no active transactions.");
         }
         $this->_oConnection->rollback();
         $this->_bTransactionActive = false;
+    }
+
+    public function debugAndDie($msg = '') {
+        $e = new \Exception;
+        print_r(str_replace("\n", "</br>", $e->getTraceAsString()));
+        die($msg);
     }
 
 
@@ -272,18 +285,18 @@ class MySQLDataAccess {
 
     public function execute($sGetType = '') {
         $this->printQuery();
-        if (!$this->verifyDatabase()) die("Error: execution attempted before a database connection was established.");
+        if (!$this->verifyDatabase()) $this->debugAndDie("Error: execution attempted before a database connection was established.");
 
         foreach ($this->_aParams as $uValue) {
             $this->_sTypes .= $this->getType($uValue);
         }
-        if (count($this->_aParams) != strlen($this->_sTypes)) die("Mismatch: SQL parameter count does not match type count.");
+        if (count($this->_aParams) != strlen($this->_sTypes)) $this->debugAndDie("Mismatch: SQL parameter count does not match type count.");
 
         // Prepare query
         $this->_oStmt = $this->_oConnection->prepare($this->_sQuery);
         if (!$this->_oStmt) {
             // Failure
-            die($this->_oConnection->error);
+            $this->debugAndDie($this->_oConnection->error);
         }
         // Convert to array('sssi', value1, value2, value3, value4)
         $aToBind = array_merge(array($this->_sTypes), array_values($this->_aParams));
@@ -296,7 +309,7 @@ class MySQLDataAccess {
         $this->_oStmt->execute();
         if ($this->_oStmt->error) {
             // Error occured
-            die($this->_oStmt->error);
+            $this->debugAndDie($this->_oStmt->error);
         }
 
         $uData;
@@ -328,7 +341,7 @@ class MySQLDataAccess {
     }
 
     public function getRows($iLimit = -1) {
-        if (!$this->verifyStmt()) die("Error: row fetch attempted before statement executed.");
+        if (!$this->verifyStmt()) $this->debugAndDie("Error: row fetch attempted before statement executed.");
         $aRet = array();
         $oResult = $this->_oStmt->get_result();
         while($aRow = $oResult->fetch_assoc()) {
