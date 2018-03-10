@@ -109,7 +109,7 @@ class MySQLDataAccess {
         $this->_bTransactionActive = false;
     }
 
-    public function getMySQLSetting($sSetting) {
+    private function getMySQLSetting($sSetting) {
         if ($result = $this->_oConnection->query("SELECT @@" . $sSetting)) {
             $row = $result->fetch_row();
             $result->free_result();
