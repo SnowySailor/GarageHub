@@ -2,12 +2,6 @@
 
 if (!defined('PROJECT_ONLINE')) exit('No dice!');
 
-DEFINE("GT", '>');
-DEFINE("LT", '<');
-DEFINE("ET", '=');
-DEFINE("NE", '!=');
-DEFINE("LIKE", 'LIKE');
-
 class MySQLDataAccess {
 
 
@@ -25,6 +19,7 @@ class MySQLDataAccess {
     private $_aParams = array();
     private $_sTypes = '';
     private $_bTransactionActive = false;
+    private $_bPreviousAutocommit;
 
 
     // -- --------------------------
@@ -65,9 +60,12 @@ class MySQLDataAccess {
     }
 
     public function disconnect() {
+        // Close connection and remove connection object
         $this->_oConnection->close();
         unset($this->_oConnection);
+        // If there was an existing statement, get rid of it
         if (isset($_oStmt)) unset($this->_oStmt);
+        // Clean up queries, parameters, etc.
         $this->clean();
     }
 
@@ -86,6 +84,8 @@ class MySQLDataAccess {
         if ($this->_bTransactionActive) {
             $this->debugAndDie("Error: attempt to begin transaction when transaction already active.");
         }
+        // Don't commit after each query; that's why we want these manual transactions
+        $this->_bPreviousAutocommit = $this->getMySQLSetting("autocommit");
         $this->_oConnection->autocommit(false);
         $this->_oConnection->begin_transaction(MYSQLI_TRANS_START_READ_WRITE);
         $this->_bTransactionActive = true;
@@ -96,6 +96,7 @@ class MySQLDataAccess {
             $this->debugAndDie("Error: attempt to commit transaction with no active transaction.");
         }
         $this->_oConnection->commit();
+        $this->_oConnection->autocommit($this->_bPreviousAutocommit);
         $this->_bTransactionActive = false;
     }
 
@@ -104,7 +105,17 @@ class MySQLDataAccess {
             $this->debugAndDie("Error: attempt to rollback transaction with no active transactions.");
         }
         $this->_oConnection->rollback();
+        $this->_oConnection->autocommit($this->_bPreviousAutocommit);
         $this->_bTransactionActive = false;
+    }
+
+    public function getMySQLSetting($sSetting) {
+        if ($result = $this->_oConnection->query("SELECT @@" . $sSetting)) {
+            $row = $result->fetch_row();
+            $result->free_result();
+            return $row[0];
+        }
+        return null;
     }
 
     public function debugAndDie($msg = '') {

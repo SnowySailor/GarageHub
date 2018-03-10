@@ -24,18 +24,15 @@ $aData = $database->select('*')
 // $aQuery = $aQuery->where(array('id' => 0))->execute('getRows');
 //$aData = $database->rawQuery("select * from garage g inner join parking_spot ps on ps.garage_id = g.id where ps.spot_no = ?", array($id))->execute('getRows');
 
-//$database2 = new MySQLDataAccess('localhost', 'root', 'rooty', 'cse3241_project');
+// $database2 = new MySQLDataAccess('localhost', 'root', 'rooty', 'cse3241_project');
 
-//$q1 = $database2->select('*');
-//$q2 = $database->from('user')->where(array('id' => 2));
-//$aData = $q1->appendQuery($q2)->execute('getRows');
+// $q1 = $database2->select('*');
+// $q2 = $database->from('user')->where(array('name' => 'bob', 'id' => 2));
+// $aData = $q1->appendQuery($q2)->execute('getRows');
 
-// $res = $database->update('user', array(
-//                             'name' => $name,
-//                             'createdate' => $date
-//                         ));
+// $res = $database->update('user', array('name' => $name, 'createdate' => $date), array('id' => 2));
 
-//$aData = $database->select('name')->from('user')->where(array('name' => $name))->execute('getRow');
+// $aData = $database->select('name')->from('user')->where(array('name' => $name))->execute('getRow');
 
 // $res = $database->insert('garage', array(
 //             'id' => 504,
