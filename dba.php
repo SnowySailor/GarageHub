@@ -122,7 +122,7 @@ class MySQLDataAccess {
 
     public function debugAndDie($msg = '') {
         $e = new \Exception;
-        print_r(str_replace("\n", "</br>", $e->getTraceAsString()));
+        print_r(nl2br($e->getTraceAsString()));
         die($msg);
     }
 

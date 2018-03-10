@@ -12,6 +12,7 @@ $database->beginT();
 $database->rollbackT();
 $database->beginT();
 $database->commitT();
+$database->commitT();
 $aData = $database->select('*')
                   ->from('garage', 'g')
                   ->innerJoin('parking_spot', 'ps', 'ps.garage_id = g.id', array('ps.garage_id' => $num1))
