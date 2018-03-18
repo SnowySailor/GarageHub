@@ -159,40 +159,43 @@ class MySQLDataAccess {
             $this->_aParams[] = $uValue;
         }
         $this->_sQuery = rtrim($this->_sQuery, ", ") . ')';
-        // Run the insert, don't wait for user to exeute
-        return $this->execute('insert');
+
+        return $this;
     }
 
-    public function update($sTable, $aParams = [], $aWhere = []) {
+    public function update($sTable, $aSet = [], $aWhere = [], ...$aParams) {
         $this->_sQuery = 'UPDATE ' . $sTable . ' SET ';
-        foreach ($aParams as $sName => $uValue) {
+        foreach ($aSet as $sName => $uValue) {
             // Building column names to put into the query
             $this->_sQuery .= $sName . ' = ?, ';
             // Put param into class param array
             $this->_aParams[] = $uValue;
         }
-        // Trim the tailing
+        // Trim the tailing ,
         $this->_sQuery = rtrim($this->_sQuery, ', ');
 
-        if (count($aWhere)) {
+        if (($this->getType($uOn) == 's' && strlen($uOn) > 0) || count($uOn) > 0) {
             // If there is a where statement, put that in as well
-            $this->where($aWhere);
+            $aCall = array($aWhere);
+            foreach ($aParams as $aParam) $aCall[] = $aParam;
+            call_user_func_array(array(&$this, 'where'), $aCall);
+            //$this->where($aWhere);
         }
 
-        // Run the update, don't wait for user to execute
-        return $this->execute('update');
+        return $this;
     }
 
-    // TODO: Allow aWhere to be a string and add ...$aParams?
-    public function delete($sTable, $aWhere = []) {
+    public function delete($sTable, $aWhere = [], ...$aParams) {
         $this->_sQuery = 'DELETE FROM ' . $sTable;
 
         if (count($aWhere) > 0 || strlen($aWhere) > 0) {
-            // Hopefully there is a where clause
-            $this->where($aWhere);
+            $aCall = array($aWhere);
+            foreach ($aParams as $aParam) $aCall[] = $aParam;
+            call_user_func_array(array(&$this, 'where'), $aCall);
+            //$this->where($aWhere, $aParams);
         }
 
-        return $this->execute('delete');
+        return $this;
     }
 
     public function from($sTable, $sAlias = '') {
@@ -203,24 +206,33 @@ class MySQLDataAccess {
         return $this;
     }
 
-    public function innerJoin($sTable, $sAlias = '', $sOn = '', $aOn = []) {
-        $this->_join('INNER', $sTable, $sAlias, $sOn, $aOn);
+    public function innerJoin($sTable, $sAlias = '', $uOn = [], ...$aParams) {
+        $aCall = array('INNER', $sTable, $sAlias, $uOn);
+        foreach ($aParams as $aParam) $aCall[] = $aParam;
+        call_user_func_array(array(&$this, '_join'), $aCall);
+        //$this->_join('INNER', $sTable, $sAlias, $uOn, $aParams);
         return $this;
     }
 
-    public function leftJoin($sTable, $sAlias = '', $sOn = '', $aOn = []) {
-        $this->_join('LEFT', $sTable, $sAlias, $sOn, $aOn);
+    public function leftJoin($sTable, $sAlias = '', $uOn = [], ...$aParams) {
+        $aCall = array('LEFT', $sTable, $sAlias, $uOn);
+        foreach ($aParams as $aParam) $aCall[] = $aParam;
+        call_user_func_array(array(&$this, '_join'), $aCall);
+        //$this->_join('LEFT', $sTable, $sAlias, $uOn, $aParams);
         return $this;
     }
 
-    private function _join($sType, $sTable, $sAlias = '', $sOn = '', $aOn = []) {
+    private function _join($sType, $sTable, $sAlias = '', $uOn = [], ...$aParams) {
         $this->_sQuery .= ' ' . $sType . ' JOIN ' . $sTable;
         if (strlen($sAlias) > 0) {
             $this->_sQuery .= ' AS ' . $sAlias;
         }
 
-        if (count($aOn) > 0 || strlen($sOn) > 0) {
-            $this->on($aOn, $sOn);
+        if (($this->getType($uOn) == 's' && strlen($uOn) > 0) || count($uOn) > 0) {
+            $aCall = array($uOn);
+            foreach($aParams as $aParam) $aCall[] = $aParam;
+            call_user_func_array(array(&$this, 'on'), $aCall);
+            //$this->on($uOn, $aParams);
         }
         return $this;
     }
@@ -231,58 +243,48 @@ class MySQLDataAccess {
     // -- --------------------------
 
 
-    // TODO: allow $aWhere to be a string and add ...$aParams?
-    public function where($aWhere) {
+    public function where($aWhere, ...$aParams) {
         if (!isset($aWhere)) return $this;
-        $aParams = array();
         $sAppend = ' WHERE ';
         if (!is_array($aWhere)) {
             $sAppend .= $aWhere;
+            if (count($aParams) > 0) {
+                // If there are params that were provided for the raw string, append them
+                $this->_aParams = array_merge($this->_aParams, $aParams);
+            }
         } else {
             if ($this->isAssoc($aWhere)) {
                 // Associative array
+                $aParams = array();
                 foreach ($aWhere as $sName => $sValue) {
-                    $sAppend  .= (count($aParams)==0 ? '' : 'AND ') . $sName . ' = ? ';
-                    $aParams[] = $sValue;
+                    $sAppend  .= (count($aParams) == 0 ? '' : 'AND ') . $sName . ' = ? ';
+                    $this->_aParams[] = $sValue;
                 }
             }
-        }
-
-        if (count($aParams) > 0) {
-            // Append params and types
-            $this->_aParams = array_merge($this->_aParams, $aParams);
         }
 
         $this->_sQuery .= $sAppend;
         return $this;
     }
 
-    // TODO: add ...$aParams to end?
-    private function on($aOn = [], $sOn = '') {
-        if (count($aOn) == 0 && strlen($sOn) == 0) return $this;
-        $aParams = array();
+    public function on($uOn = [], ...$aParams) {
+        if (count($uOn) == 0 && strlen($uOn) == 0) return $this;
         $sAppend = ' ON ';
-        if (!is_array($aOn)) {
-            $sAppend .= $aOn;
+        if (!is_array($uOn)) {
+            $sAppend .= $uOn;
+            if (count($aParams) > 0) {
+                // If there are params that were provided for the raw string, append them
+                $this->_aParams = array_merge($this->_aParams, $aParams);
+            }
         } else {
-            if ($this->isAssoc($aOn)) {
+            if ($this->isAssoc($uOn)) {
                 // Associative array
-                foreach ($aOn as $sName => $sValue) {
-                    $sAppend  .= (count($aParams)==0 ? '' : ' AND ') . $sName . ' = ?';
-                    $aParams[] = $sValue;
+                $aParams = array();
+                foreach ($uOn as $sName => $sValue) {
+                    $sAppend  .= (count($aParams) == 0 ? '' : ' AND ') . $sName . ' = ?';
+                    $this->_aParams[] = $sValue;
                 }
             }
-        }
-
-        if (strlen($sOn) > 0) {
-            // If there was a string provided, we concat it with an AND
-            // TODO: allow user to specify AND or OR with their $sOn?
-            $sAppend .= (count($aParams)==0 ? $sOn : ' AND ' . $sOn);
-        }
-
-        if (count($aParams) > 0) {
-            // Append params and types
-            $this->_aParams = array_merge($this->_aParams, $aParams);
         }
 
         $this->_sQuery .= $sAppend;

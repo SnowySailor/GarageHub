@@ -14,8 +14,8 @@ $database->beginT();
 $database->commitT();
 $aData = $database->select('*')
                   ->from('garage', 'g')
-                  ->innerJoin('parking_spot', 'ps', 'ps.garage_id = g.id', array('ps.garage_id' => $num1))
-                  ->rawQuery("WHERE ps.spot_no > ? and ps.spot_no < ?", $num2, $num3)
+                  ->innerJoin('parking_spot', 'ps', 'ps.garage_id = g.id AND ps.garage_id = ?', $num1)
+                  ->where("ps.spot_no > ? and ps.spot_no < ?", $num2, $num3)
                   ->orderBy('ps.spot_no DESC')
                   ->execute('getRows');
 
