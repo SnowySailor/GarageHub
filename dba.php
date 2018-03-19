@@ -163,7 +163,7 @@ class MySQLDataAccess {
         return $this;
     }
 
-    public function update($sTable, $aSet = [], $aWhere = [], ...$aParams) {
+    public function update($sTable, $aSet = [], $uWhere = [], ...$aParams) {
         $this->_sQuery = 'UPDATE ' . $sTable . ' SET ';
         foreach ($aSet as $sName => $uValue) {
             // Building column names to put into the query
@@ -174,12 +174,11 @@ class MySQLDataAccess {
         // Trim the tailing ,
         $this->_sQuery = rtrim($this->_sQuery, ', ');
 
-        if (($this->getType($uOn) == 's' && strlen($uOn) > 0) || count($uOn) > 0) {
+        if (($this->getType($uWhere) == 's' && strlen($uWhere) > 0) || count($uWhere) > 0) {
             // If there is a where statement, put that in as well
-            $aCall = array($aWhere);
+            $aCall = array($uWhere);
             foreach ($aParams as $aParam) $aCall[] = $aParam;
             call_user_func_array(array(&$this, 'where'), $aCall);
-            //$this->where($aWhere);
         }
 
         return $this;
@@ -192,7 +191,6 @@ class MySQLDataAccess {
             $aCall = array($aWhere);
             foreach ($aParams as $aParam) $aCall[] = $aParam;
             call_user_func_array(array(&$this, 'where'), $aCall);
-            //$this->where($aWhere, $aParams);
         }
 
         return $this;
@@ -210,7 +208,6 @@ class MySQLDataAccess {
         $aCall = array('INNER', $sTable, $sAlias, $uOn);
         foreach ($aParams as $aParam) $aCall[] = $aParam;
         call_user_func_array(array(&$this, '_join'), $aCall);
-        //$this->_join('INNER', $sTable, $sAlias, $uOn, $aParams);
         return $this;
     }
 
@@ -218,7 +215,6 @@ class MySQLDataAccess {
         $aCall = array('LEFT', $sTable, $sAlias, $uOn);
         foreach ($aParams as $aParam) $aCall[] = $aParam;
         call_user_func_array(array(&$this, '_join'), $aCall);
-        //$this->_join('LEFT', $sTable, $sAlias, $uOn, $aParams);
         return $this;
     }
 
@@ -232,7 +228,6 @@ class MySQLDataAccess {
             $aCall = array($uOn);
             foreach($aParams as $aParam) $aCall[] = $aParam;
             call_user_func_array(array(&$this, 'on'), $aCall);
-            //$this->on($uOn, $aParams);
         }
         return $this;
     }
@@ -268,7 +263,7 @@ class MySQLDataAccess {
     }
 
     public function on($uOn = [], ...$aParams) {
-        if (count($uOn) == 0 && strlen($uOn) == 0) return $this;
+        if (($this->getType($uOn) == 's' && strlen($uOn) > 0) || count($uOn) > 0) return $this;
         $sAppend = ' ON ';
         if (!is_array($uOn)) {
             $sAppend .= $uOn;
@@ -346,31 +341,27 @@ class MySQLDataAccess {
 
         // Return data
         $uData;
-        if (strlen($sGetType) == 0 || in_array(strtolower($sGetType), array("insert", "update", "delete"))) {
-            // If the query was an insert, update, or delete, we just need to get the # of affected rows
-            $uData = $this->_oStmt->affected_rows;
-        } else {
-            // If it was a select, we want to get some result
-            switch (strtolower($sGetType)) {
-                case 'getrows':
-                    $uData = $this->getRows();
-                    break;
-                case 'getrow':
-                    $uData = $this->getRows(1);
-                    break;
-                case 'getfield':
-                    $uData = $this->getRows(1);
-                    if (count($uData) > 0)
-                        // Fancy way of getting the first value from an array of associative arrays
-                        $uData = reset($uData[0]);
-                    else
-                        $uData = NULL;
-                    break;
-                default:
-                    // Default to getRows
-                    $uData = $this->_oStmt->getRows();
-                    break;
-            }
+        switch (strtolower($sGetType)) {
+            case 'getrows':
+                $uData = $this->getRows();
+                break;
+            case 'getrow':
+                $uData = $this->getRows(1);
+                break;
+            case 'getfield':
+                $uData = $this->getRows(1);
+                if (count($uData) > 0)
+                    // Fancy way of getting the first value from an array of associative arrays
+                    $uData = reset($uData[0]);
+                else
+                    $uData = NULL;
+                break;
+            case 'getaffectedrows':
+                $uData = $this->_oStmt->affected_rows;
+                break;
+            default:
+                $uData = null;
+                break;
         }
         $this->clean();
         return $uData;

@@ -19,6 +19,11 @@ $aData = $database->select('*')
                   ->orderBy('ps.spot_no DESC')
                   ->execute('getRows');
 
+
+$aData = $database->select("*")->from("user")->execute("getRows");
+
+$affectedRows = $database->update('user', array('name' => 'bob'), "id = ?", 9)->execute('getAffectedRows');
+
 // $aQuery = $database->select('*');
 // $aQuery = $aQuery->from('garage', 'g');
 // $aQuery = $aQuery->where(array('id' => 0))->execute('getRows');
