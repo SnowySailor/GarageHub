@@ -4,7 +4,7 @@ To create the database and populate it with test data, run this command in the r
 
 ## Connecting
 ```php
-$db = new MySQLDataAccess($host, $username, $password, $database);
+$db = new MySQLDataAccess($sHost, $sUsername, $sPassword, $sDatabase);
 ```
 
 ## Select
@@ -17,9 +17,9 @@ $aResults = $db->select('col1, col2, col3')
                ->execute('getRows');
 ```
 ### Notes
-1. We can set table aliases by adding a second string parameter: ...->from('table', 't')
-2. We can also pass in array('col4' => $param1) to `where` to get the same result
-3. If you want a single row, use 'getRow'
+1. We can set table aliases by adding a second string parameter: `...->from('table', 't')`
+2. We can also pass in `array('col4' => $param1)` to `where` to get the same result
+3. If you want a single row, use `'getRow'` in `execute`
   * Use 'getField' to get the first column of the first row returned. Does not return an array in this case
   * Use 'getAffectedRows' to get the number of rows affected by a query
 4. The `select` function accepts '*' for all columns. You can also use table aliases if they were set. For example:
@@ -28,7 +28,7 @@ $aResuls = $db->select('t1.col1')->from('table1', 't1')->execute('getRows');
 ```
 
 ## Update
-`update($table, $aNewVals [, $where, ...$params])`
+`update($sTable, $aNewVals [, $aWhere, ...$params])`
 ```php
 $iAffectedRows = $db->update('table', array('col1' => $newVal1, 'col2' => $newVal2), "col2 > ?", $someParam)
 ```
