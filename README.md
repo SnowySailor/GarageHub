@@ -22,7 +22,8 @@ $aResults = $db->select('col1, col2, col3')
 3. If you want a single row, use `'getRow'` in `execute`
   * Use 'getField' to get the first column of the first row returned. Does not return an array in this case
   * Use 'getAffectedRows' to get the number of rows affected by a query
-4. The `select` function accepts '*' for all columns. You can also use table aliases if they were set. For example:
+4. The `select` function accepts '*' for all columns
+5. You can use table aliases if they were set. For example:
 ```php
 $aResuls = $db->select('t1.col1')->from('table1', 't1')->execute('getRows');
 ```
