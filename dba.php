@@ -29,7 +29,7 @@ class MySQLDataAccess {
 
     function __construct() {
         if (func_num_args() == 4) {
-            $this->connect(func_get_arg(0),func_get_arg(1),func_get_arg(2),func_get_arg(3));
+            $this->connect(func_get_arg(0), func_get_arg(1), func_get_arg(2), func_get_arg(3));
             if (!$this->verifyDatabase()) { $this->debugAndDie("Unable to connect to database."); }
         }
     }

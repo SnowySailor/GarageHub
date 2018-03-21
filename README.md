@@ -8,7 +8,9 @@ $db = new MySQLDataAccess($sHost, $sUsername, $sPassword, $sDatabase);
 ```
 
 ## Select
-```select($sFields)```
+```php
+select($sFields)
+```
 ```php
 $aResults = $db->select('col1, col2, col3')
                ->from('table')
@@ -20,16 +22,55 @@ $aResults = $db->select('col1, col2, col3')
 1. We can set table aliases by adding a second string parameter: `...->from('table', 't')`
 2. We can also pass in `array('col4' => $param1)` to `where` to get the same result
 3. If you want a single row, use `'getRow'` in `execute`
-  * Use 'getField' to get the first column of the first row returned. Does not return an array in this case
-  * Use 'getAffectedRows' to get the number of rows affected by a query
+    * Use 'getField' to get the first column of the first row returned. Does not return an array in this case
+    * Use 'getAffectedRows' to get the number of rows affected by a query
 4. The `select` function accepts '*' for all columns
 5. You can use table aliases if they were set. For example:
 ```php
 $aResuls = $db->select('t1.col1')->from('table1', 't1')->execute('getRows');
 ```
 
-## Update
-`update($sTable, $aNewVals [, $aWhere, ...$params])`
+## Insert
 ```php
-$iAffectedRows = $db->update('table', array('col1' => $newVal1, 'col2' => $newVal2), "col2 > ?", $someParam)
+insert($sTable, $aVals)
+```
+```php
+$iAffectedRows = $db->insert('table', array('col1' => 5, 'col2' => 'Hello', 'col3' => 'World'))->execute('getAffectedRows');
+```
+### Notes
+1. It is possible to append `->where()` after the `insert()` call to specify a where clause
+
+## Update
+```php
+update($sTable, $aNewVals [, $aWhere, ...$params])
+```
+```php
+$iAffectedRows = $db->update('table', array('col1' => $newVal1, 'col2' => $newVal2), "col2 > ?", $someParam)->execute('getAffectedRows');
+```
+### Notes
+1. `...->execute()` doesn't need to take a paremeter. If it receieves no argument, it will execute and return `null`.
+2. In place of the 3rd argument's string value, an associative array can be used if columns and values must be equal. For example:
+```php
+$db->update('table', array('col1' => $newVal1), array('col2' => $conditialValue1))->execute();
+```
+
+## Delete
+```php
+delete($sTable [, $aWhere, ...$params])
+```
+```php
+$iAffectedRows = $db->delete('table', array('col1' => 5, 'col2' => 6))->execute('getAffectedRows');
+```
+### Notes
+1. In place of the $aWhere value, we can pass in a string and parameters like we've done before. For example:
+```php
+$db->delete('table', 'col1 = ? AND col2 = ?', 5, 6)->execute('getAffectedRows');
+```
+
+## Raw queries
+```php
+rawQuery($sSql [, ...$params])
+```
+```php
+$aResult = $db->rawQuery("select * from table where col1 = ? and col4 = ? and col3 is null", 5, 2)->execute('getRows');
 ```
