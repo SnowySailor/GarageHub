@@ -296,8 +296,17 @@ class MySQLDataAccess {
         return $this;
     }
 
-    public function having($sHaving) {
+    public function having($sHaving, ...$aParams) {
         $this->_sQuery .= ' HAVING ' . $sHaving;
+        if (count($aParams) > 0) {
+            $this->_aParams = array_merge($this->_aParams, $aParams);
+        }
+        return $this;
+    }
+
+    public function limit($iLimit) {
+        $this->_sQuery .= ' LIMIT ?';
+        $this->_aParams[] = $iLimit;
         return $this;
     }
 

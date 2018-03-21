@@ -17,10 +17,11 @@ $aData = $database->select('*')
                   ->innerJoin('parking_spot', 'ps', 'ps.garage_id = g.id AND ps.garage_id = ?', $num1)
                   ->where("ps.spot_no > ? and ps.spot_no < ?", $num2, $num3)
                   ->orderBy('ps.spot_no DESC')
+                  ->limit(100)
                   ->execute('getRows');
 
 
-$aData = $database->select("*")->from("user")->execute("getRows");
+//$aData = $database->select("*")->from("user")->execute("getRows");
 
 $affectedRows = $database->update('user', array('name' => 'bob'), "id = ?", 9)->execute('getAffectedRows');
 

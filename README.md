@@ -2,6 +2,11 @@ To create the database and populate it with test data, run this command in the r
 
 `cat 3241_Config.sql 3241_Test_Data.sql | mysql -u root -p`
 
+## Objective
+This is a class function library written to allow easy use of MySQL queries without having to worry about the risk of SQL injection from malicious user inputs. It also provides a layer of abstration between the programmer and the connection, statements, and fetching of results in order to make their lives easier. Once a connection is established, any number of SQL commands can be issued, including very complex queries by the use of the `rawQuery` function.
+
+This class library also supports query building, which means that your query doesn't need to be constructed all at once; it can be built over time and then executed once knowing the result is necessary. Each function call returns the MySQLDataAccess object so that it can be used with other functions that the class contains.
+
 ## Connecting
 ```php
 $db = new MySQLDataAccess($sHost, $sUsername, $sPassword, $sDatabase);
@@ -62,7 +67,7 @@ delete($sTable [, $aWhere, ...$params])
 $iAffectedRows = $db->delete('table', array('col1' => 5, 'col2' => 6))->execute('getAffectedRows');
 ```
 ### Notes
-1. In place of the $aWhere value, we can pass in a string and parameters like we've done before. For example:
+1. In place of the `$aWhere` value, we can pass in a string and parameters like we've done before. For example:
 ```php
 $db->delete('table', 'col1 = ? AND col2 = ?', 5, 6)->execute('getAffectedRows');
 ```
