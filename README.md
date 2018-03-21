@@ -5,7 +5,17 @@ To create the database and populate it with test data, run this command in the r
 ## Objective
 This is a class function library written to allow easy use of MySQL queries without having to worry about the risk of SQL injection from malicious user inputs. It also provides a layer of abstration between the programmer and the connection, statements, and fetching of results in order to make their lives easier. Once a connection is established, any number of SQL commands can be issued, including very complex queries by the use of the `rawQuery` function.
 
-This class library also supports query building, which means that your query doesn't need to be constructed all at once; it can be built over time and then executed once knowing the result is necessary. Each function call returns the MySQLDataAccess object so that it can be used with other functions that the class contains.
+This class library also supports query building, which means that your query doesn't need to be constructed all at once; it can be built over time and then executed once knowing the result is necessary. For example:
+```php
+$db = new MySQLDataAccess($sHost, $sUser, $sPassword, $sDatabase);
+$db = $db->select('col1, col2')->from('table');
+if ($condition1) {
+    $aResults = $db->where(array('col3' => $num1))->execute('getRow');
+} else {
+    $aResults = $db->where(array('col3' => $num2))->execute('getRows');
+}
+```
+Each function call returns the `MySQLDataAccess` object so that it can be used with other functions that the class contains, which allows functions to be strung together as such: `$object->function1()->function2()->function3()`
 
 ## Connecting
 ```php
