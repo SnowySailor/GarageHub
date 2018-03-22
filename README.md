@@ -33,6 +33,19 @@ $aResults = $db->select('col1, col2, col3')
                ->orderBy('col1 DESC')
                ->execute('getRows');
 ```
+
+### Joins
+INNER and LEFT joins are supported. For a RIGHT join, simply reverse the tables and use a LEFT join.
+```php
+innerJoin($sTable [, $sAlias, $aOn, ...$params]);
+leftJoin($sTable [, $sAlias, $aOn, ...$params]);
+```
+```php
+$aResults = $db->select('t1.col1', 't2.col1')
+               ->from('table1', 't1')
+               ->innerJoin('table2', 't2', 't1.col1 = t2.col2')
+               ->execute('getRows');
+```
 ### Notes
 1. We can set table aliases by adding a second string parameter: `...->from('table', 't')`
 2. We can also pass in `array('col4' => $param1)` to `where` to get the same result
@@ -68,6 +81,9 @@ $iAffectedRows = $db->update('table', array('col1' => $newVal1, 'col2' => $newVa
 ```php
 $db->update('table', array('col1' => $newVal1), array('col2' => $conditialValue1))->execute();
 ```
+
+### Notes
+1. `$aWhere` can also be passed in by calling `...->where($aWhere)` after the `update()` call. It can go in either place and have the same effect.
 
 ## Delete
 ```php
