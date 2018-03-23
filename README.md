@@ -35,10 +35,11 @@ $aResults = $db->select('col1, col2, col3')
 ```
 
 ### Joins
-INNER and LEFT joins are supported. For a RIGHT join, simply reverse the tables and use a LEFT join.
+INNER, LEFT, and RIGHT joins are supported.
 ```php
-innerJoin($sTable [, $sAlias, $aOn, ...$params]);
-leftJoin($sTable [, $sAlias, $aOn, ...$params]);
+innerJoin($sTable, $sAlias = '', $aOn = [] [, ...$params]);
+leftJoin($sTable [, $sAlias = '', $aOn = [], ...$params]);
+rightJoin($sTable [, $sAlais = '', $aOn = [], ...$params]);
 ```
 ```php
 $aResults = $db->select('t1.col1', 't2.col1')
@@ -60,7 +61,7 @@ $aResuls = $db->select('t1.col1')->from('table1', 't1')->execute('getRows');
 
 ## Insert
 ```php
-insert($sTable, $aVals)
+insert($sTable, $aVals = [])
 ```
 ```php
 $iAffectedRows = $db->insert('table', array('col1' => 5, 'col2' => 'Hello', 'col3' => 'World'))->execute('getAffectedRows');
@@ -70,7 +71,7 @@ $iAffectedRows = $db->insert('table', array('col1' => 5, 'col2' => 'Hello', 'col
 
 ## Update
 ```php
-update($sTable, $aNewVals [, $aWhere, ...$params])
+update($sTable, $aNewVals = [] [, $aWhere = [], ...$params])
 ```
 ```php
 $iAffectedRows = $db->update('table', array('col1' => $newVal1, 'col2' => $newVal2), "col2 > ?", $someParam)->execute('getAffectedRows');
@@ -87,7 +88,7 @@ $db->update('table', array('col1' => $newVal1), array('col2' => $conditialValue1
 
 ## Delete
 ```php
-delete($sTable [, $aWhere, ...$params])
+delete($sTable [, $aWhere = [], ...$params])
 ```
 ```php
 $iAffectedRows = $db->delete('table', array('col1' => 5, 'col2' => 6))->execute('getAffectedRows');

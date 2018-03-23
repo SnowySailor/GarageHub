@@ -13,13 +13,13 @@ class MySQLDataAccess {
     // Connection class vars
     private $_oConnection;
     private $_oStmt;
+    private $_bTransactionActive = false;
+    private $_bPreviousAutocommit;
 
     // Query class vars
     private $_sQuery = '';
     private $_aParams = array();
     private $_sTypes = '';
-    private $_bTransactionActive = false;
-    private $_bPreviousAutocommit;
 
 
     // -- --------------------------
@@ -213,6 +213,13 @@ class MySQLDataAccess {
 
     public function leftJoin($sTable, $sAlias = '', $uOn = [], ...$aParams) {
         $aCall = array('LEFT', $sTable, $sAlias, $uOn);
+        foreach ($aParams as $aParam) $aCall[] = $aParam;
+        call_user_func_array(array(&$this, '_join'), $aCall);
+        return $this;
+    }
+
+    public function rightJoin($sTable, $sAlias = '', $uOn = [], ...$aParams) {
+        $aCall = array('RIGHT', $sTable, $sAlias, $uOn);
         foreach ($aParams as $aParam) $aCall[] = $aParam;
         call_user_func_array(array(&$this, '_join'), $aCall);
         return $this;
