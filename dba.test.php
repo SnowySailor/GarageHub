@@ -7,7 +7,10 @@ $num1 = $_GET['num1'];
 $num2 = $_GET['num2'];
 $num3 = $_GET['num3'];
 
-$database = new MySQLDataAccess('localhost', 'root', 'rooty', 'cse3241_project');
+$pool = new ConnectionPool('MySQLDataAccess', 'localhost', 'root', 'rooty', 'cse3241_project');
+$database = $pool->getConnection();
+
+//$database = new MySQLDataAccess('localhost', 'root', 'rooty', 'cse3241_project');
 $database->beginT();
 $database->rollbackT();
 $database->beginT();
@@ -19,11 +22,11 @@ $aData = $database->select('*')
                   ->orderBy('ps.spot_no DESC')
                   ->limit(100)
                   ->execute('getRows');
+$pool->freeConnection($database);
 
+//$aData = $database->select("*")->from("user")->where('id > 5')->orderBy('name')->execute("getRows");
 
-//$aData = $database->select("*")->from("user")->execute("getRows");
-
-$affectedRows = $database->update('user', array('name' => 'bob'), "id = ?", 9)->execute('getAffectedRows');
+//$affectedRows = $database->update('user', array('name' => 'bob'), "id = ?", 9)->execute('getAffectedRows');
 
 // $aQuery = $database->select('*');
 // $aQuery = $aQuery->from('garage', 'g');

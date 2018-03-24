@@ -9,18 +9,25 @@ class ConnectionObject {
 
     function __construct($oConnection, $uId = null) {
         $this->_oConnection = $oConnection;
-        $this->_oLock = Mutex::create();
+        //$this->_oLock = Mutex::create();
         if (!is_null($uId)) {
             $this->_uId = $uId;
+        } else {
+            // Gets the hash of the connection object.
+            // As long as the connection object isn't destroyed, it will be unique
+            // to this object
+            $this->_uId = spl_object_hash($oConnection);
         }
     }
 
     function lock() {
-        return $this->_oLock::lock();
+        return true;
+        //return Mutes::lock($this->_oLock);
     }
 
     function unlock() {
-        return $this->_oLock::unlock();
+        return true;
+        return Mutex::unlock($this->_oLock);
     }
 
     function getConnection() {
@@ -32,61 +39,99 @@ class ConnectionObject {
     }
 }
 
-class ConnectionPools {
-    private $_sType;
-    private $_aAvailableConnections;
-    private $_aUsedConnections;
-    private $_aCredentials;
-    private $_iMaxConns;
-    private $_oWaitQueue;
-    private $_sClassName;
+class ConnectionPool {
+    private $_aAvailableConnections = array();
+    private $_aUsedConnections = array();
+    private $_aCredentials = array();
+    private $_iMaxConns = 20;
+    private $_sClassName = '';
 
     private $_lUsedLock;
     private $_lAvailableLock;
 
-    function __construct($sType, ...$aParams) {
-        $this->_lUsedLock = Mutex::create();
-        $this->_lAvailableLock = Mutex::create();
+    function __construct($sClassName, ...$aParams) {
+        //$this->_lUsedLock = Mutex::create();
+        //$this->_lAvailableLock = Mutex::create();
+        $this->_sClassName = $sClassName;
+        $this->_aCredentials = $aParams;
     }
 
     private function connect() {
         $oClass = new ReflectionClass($this->_sClassName);
-        $oNewConn = $oClass->newInstance($_aCredentials);
+        $oNewConn = $oClass->newInstanceArgs($this->_aCredentials);
         return $oNewConn;
     }
 
-    private function getConnection() {
+    public function getConnection() {
         if (count($this->_aAvailableConnections) > 0) {
-            $bLocked = Mutex::trylock($this->_lAvailableLock);
-            if (!$bLocked) {
-                // Someone else is using it
-                // Try again later?
+            $this->lock($this->_lAvailableLock);
+            $oRet = array_shift($this->_aAvailableConnections);
+            if (is_null($oRet)) {
+                // We weren't expecting this!
+                // Give up lock and try again
+                $this->unlock($this->_lAvailableLock);
+                return $this->getConnection();
             }
-            // Get rand
-            Mutex::unlock($this->_lAvailableLock);
-            // Return
+            $this->unlock($this->_lAvailableLock);
+            return $oRet->getConnection();
         } else {
             // None available
-            if (count($this->_aUsedConnections) >= $_iMaxConns) {
+            if (count($this->_aUsedConnections) >= $this->_iMaxConns) {
                 // All used. Wait until connection is available
-                // Write something to a queue
-                // When connection is returned, fire event that pops from queue and continues execution here
+                while (count($this->_aUsedConnections) >= $this->_iMaxConns) {
+                    usleep(500);
+                }
+                return $this->getConnection();
             } else {
                 // Create
                 $oNewConn = $this->connect();
-                $uId = uniqid();
-                $oConObj = new ConnectionObject($oNewConn, $uId)
-                $this->_aUsedConnections[$uId] = $oConObj;
+                $oConObj = new ConnectionObject($oNewConn);
                 $oConObj->lock();
+
+                $this->lock($this->_lAvailableLock);
+                $this->_aUsedConnections[$oConObj->getId()] = $oConObj;
+                $this->unlock($this->_lAvailableLock);
+                
                 return $oConObj->getConnection();
             }
         }
     }
 
-    private function freeConnection($oConn) {
-        // Find connection in used connections
-        // Free it
-        // Mutex::unlock()
+    public function freeConnection($oConn) {
+        $sHash = spl_object_hash($oConn);
+        if (!array_key_exists($sHash, $this->_aUsedConnections)) {
+            return false;
+        }
+        $oConnection = $this->_aUsedConnections[$sHash];
+        $oConnection->unlock();
+
+        $this->lock($this->_lAvailableLock);
+        $this->_aAvailableConnections[$sHash] = $oConnection;
+        $this->unlock($this->_lAvailableLock);
+        
+        $this->lock($this->_lUsedLock);
+        unset($this->_aUsedConnections[$sHash]);
+        $this->unlock($this->_lUsedLock);
+
+        return true;
+    }
+
+    private function withConnection() {
+        $oConn = $this->getConnection();
+        // Do stuff
+        $this->freeConnection($oConn);
+    }
+
+    private function lock($lLock) {
+        $bLocked = true;
+        do {
+            //$bLocked = Mutex::trylock($lLock);
+        } while (!$bLocked);
+        return true;
+    }
+
+    private function unlock($lLock) {
+        //return Mutex::unlock($lLock);
     }
 }
 
