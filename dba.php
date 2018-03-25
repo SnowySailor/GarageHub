@@ -32,7 +32,7 @@ class ConnectionPool {
     // Connection pool connection management
     private $_aAvailableConnections = array();
     private $_aUsedConnections = array();
-    private $_iMaxConns = 2; // Default value
+    private $_iMaxConns = 20; // Default value
 
     // Connection type/access data
     private $_aCredentials = array();
@@ -50,7 +50,8 @@ class ConnectionPool {
         // Create a key for each semaphore
         // Get this object's hash
         $sThisHash = spl_object_hash($this);
-        // Take the last 6 characters from the MD5 hash
+        // Take the last 8 hex characters from the MD5 hash
+        // and convert them into an integer to use as a key
         // We do this because two objects can have very similar hashes
         // but only be different by a character or two in the middle
         // Example: 000000003cc56d770000000007fa48c5
