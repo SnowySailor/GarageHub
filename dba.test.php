@@ -9,6 +9,10 @@ $num3 = $_GET['num3'];
 
 $pool = new ConnectionPool('MySQLDataAccess', 'localhost', 'root', 'rooty', 'cse3241_project');
 $database = $pool->getConnection();
+$database2 = $pool->getConnection();
+$pool->freeConnection($database2);
+$database3 = $pool->getConnection();
+$pool->freeConnection($database3);
 
 //$database = new MySQLDataAccess('localhost', 'root', 'rooty', 'cse3241_project');
 $database->beginT();
