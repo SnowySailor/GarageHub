@@ -13,8 +13,8 @@ class ConnectionObject {
             $this->_uId = $uId;
         } else {
             // Gets the hash of the connection object.
-            // As long as the connection object isn't destroyed, it will be unique
-            // to this object
+            // As long as the connection object isn't destroyed,
+            // it will be unique to this object
             $this->_uId = spl_object_hash($oConnection);
         }
     }
@@ -79,7 +79,10 @@ class ConnectionPool {
         return $oNewConn;
     }
 
-    public function getConnection() {
+    public function take($iMaxMicroWait = -1, $oStartWaitTime = null) {
+        if ($iMaxMicroWait > -1 && is_null($oStartWaitTime)) {
+            $oStartWaitTime = $this->microtime_float();
+        }
         // If there are connections that were created but haven't been destroyed yet
         if (count($this->_aAvailableConnections) > 0) {
             // Lock the available connections so we can manipulate them
@@ -90,7 +93,7 @@ class ConnectionPool {
                 // We weren't expecting this!
                 // Give up lock and try again
                 $this->unlock($this->_lAvailableLock);
-                return $this->getConnection();
+                return $this->take($iMaxMicroWait, $oStartWaitTime);
             }
             // Release the lock and return the connection handle
             $this->unlock($this->_lAvailableLock);
@@ -102,8 +105,11 @@ class ConnectionPool {
                 while (count($this->_aUsedConnections) >= $this->_iMaxConns) {
                     // Sleep for 500us so we aren't just burning CPU time
                     usleep(500);
+                    if($iMaxMicroWait > -1 && !is_null($oStartWaitTime)) {
+                        if (($this->microtime_float() - $oStartWaitTime)*1000000 >= $iMaxMicroWait) return null;
+                    }
                 }
-                return $this->getConnection();
+                return $this->take($iMaxMicroWait, $oStartWaitTime);
             } else {
                 // Create a new connection
                 $oNewConn = $this->newConnection();
@@ -119,7 +125,8 @@ class ConnectionPool {
         }
     }
 
-    public function freeConnection($oConn) {
+    public function return($oConn) {
+        if (is_null($oConn)) return False;
         $sHash = spl_object_hash($oConn);
         // Check to see if the connection that we're using is actually one of ours
         if (!array_key_exists($sHash, $this->_aUsedConnections)) {
@@ -145,9 +152,9 @@ class ConnectionPool {
 
     // Unimplemented
     private function withConnection($function, ...$aParams) {
-        $oConn = $this->getConnection();
+        $oConn = $this->take();
         // Do stuff
-        $this->freeConnection($oConn);
+        $this->return($oConn);
     }
 
     private function lock($lLock) {
@@ -156,6 +163,11 @@ class ConnectionPool {
 
     private function unlock($lLock) {
         return sem_release($lLock);
+    }
+
+    private function microtime_float() {
+        list($usec, $sec) = explode(" ", microtime());
+        return ((float)$usec + (float)$sec);
     }
 }
 
