@@ -8,11 +8,11 @@ $num2 = $_GET['num2'];
 $num3 = $_GET['num3'];
 
 $pool = new ConnectionPool('MySQLDataAccess', 'localhost', 'root', 'rooty', 'cse3241_project');
-$database = $pool->take();
-$database2 = $pool->take();
-//$pool->freeConnection($database2);
-$database3 = $pool->take(1000000);
-$pool->return($database3);
+$database = $pool->takeResource();
+$database2 = $pool->takeResource();
+$pool->returnResource($database2);
+$database3 = $pool->takeResource(1000000);
+$pool->returnResource($database3);
 
 //$database = new MySQLDataAccess('localhost', 'root', 'rooty', 'cse3241_project');
 $database->beginT();
@@ -26,7 +26,7 @@ $aData = $database->select('*')
                   ->orderBy('ps.spot_no DESC')
                   ->limit(100)
                   ->execute('getRows');
-$pool->return($database);
+$pool->returnResource($database);
 
 //$aData = $database->select("*")->from("user")->where('id > 5')->orderBy('name')->execute("getRows");
 

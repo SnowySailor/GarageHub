@@ -50,12 +50,13 @@ class ConnectionPool {
         // Create a key for each semaphore
         // Get this object's hash
         $sThisHash = md5(spl_object_hash($this));
-        // Take the last 8 hex characters from the MD5 hash
-        // and convert them into an integer to use as a key
-        // We do this because two objects can have very similar hashes
+        // We use md5 because two objects can have very similar spl hashes
         // but only be different by a character or two in the middle
         // Example: 000000003cc56d770000000007fa48c5
         //      vs. 000000003cc56d0d0000000007fa48c5
+
+        // Take the last 8 hex characters from the MD5 hash
+        // and convert them into an integer to use as a key
         $iBaseKey = hexdec(substr($sThisHash, strlen($sThisHash)-8));
         $this->_iAvailableLockKey = $iBaseKey;
         $this->_iUsedLockKey = $iBaseKey+1;
@@ -79,7 +80,7 @@ class ConnectionPool {
         return $oNewConn;
     }
 
-    public function take($iMaxMicroWait = -1, $oStartWaitTime = null) {
+    public function takeResource($iMaxMicroWait = -1, $oStartWaitTime = null) {
         if ($iMaxMicroWait > -1 && is_null($oStartWaitTime)) {
             $oStartWaitTime = $this->microtime_float();
         }
@@ -93,7 +94,7 @@ class ConnectionPool {
                 // We weren't expecting this!
                 // Give up lock and try again
                 $this->unlock($this->_lAvailableLock);
-                return $this->take($iMaxMicroWait, $oStartWaitTime);
+                return $this->takeResource($iMaxMicroWait, $oStartWaitTime);
             }
             // Release the lock and return the connection handle
             $this->unlock($this->_lAvailableLock);
@@ -109,7 +110,7 @@ class ConnectionPool {
                         if (($this->microtime_float() - $oStartWaitTime)*1000000 >= $iMaxMicroWait) return null;
                     }
                 }
-                return $this->take($iMaxMicroWait, $oStartWaitTime);
+                return $this->takeResource($iMaxMicroWait, $oStartWaitTime);
             } else {
                 // Create a new connection
                 $oNewConn = $this->newConnection();
@@ -125,7 +126,7 @@ class ConnectionPool {
         }
     }
 
-    public function return($oConn) {
+    public function returnResource($oConn) {
         if (is_null($oConn)) return False;
         $sHash = spl_object_hash($oConn);
         // Check to see if the connection that we're using is actually one of ours
@@ -150,11 +151,30 @@ class ConnectionPool {
         return true;
     }
 
-    // Unimplemented
-    private function withConnection($function, ...$aParams) {
-        $oConn = $this->take();
-        // Do stuff
-        $this->return($oConn);
+    public function withResource($uFunction, $iTimeout = -1, ...$aParams) {
+        // If there was a timeout set, pass it in to wait
+        if ($iTimeout > -1) $oConn = $this->takeResource($iTimeout);
+        // Otherwise just to a normal takeResource()
+        else                $oConn = $this->takeResource();
+
+        // If the connection get failed return false
+        if (is_null($oConn)) {
+            throw new RuntimeException("Unable to obtain connection from pool.");
+        }
+        // Prepend connection to params
+        array_unshift($aParams, $oConn);
+
+        // Default return value
+        $uResult = null;
+        // Check to see if the function passed is callable
+        if (is_callable($uFunction)) {
+            // If it's callable, call the function and pass the parameters
+            $uResult = call_user_func_array($uFunction, $aParams);
+        }
+        // Return the connection
+        $this->returnResource($oConn);
+        // Return the result of the function call
+        return $uResult;
     }
 
     private function lock($lLock) {
