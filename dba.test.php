@@ -2,6 +2,7 @@
 define('PROJECT_ONLINE', 1);
 
 include 'dba.php';
+include 'dba.pools.php';
 
 $num1 = $_GET['num1'];
 $num2 = $_GET['num2'];
