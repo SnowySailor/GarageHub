@@ -63,8 +63,8 @@ function logout() {
 }
 
 function goHome() {
-    echo $_CONF['host'] . '/' . $_CONF['path'] . '/';
-    //header('Location', $_CONF['host'] . '/' . $_CONF['path'] . '/');
+    global $_CONF;
+    header('Location: ' . $_CONF['httpmode'] . '://' . $_CONF['host'] . '/' . $_CONF['path']);
     return;
 }
 
