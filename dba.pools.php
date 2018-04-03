@@ -30,7 +30,7 @@ class ConnectionPool {
     // Connection pool connection management
     private $_aAvailableConnections = array();
     private $_aUsedConnections = array();
-    private $_iMaxConns = 20; // Default value
+    private $_iMaxConns = 2; // Default value
 
     // Connection type/access data
     private $_aCredentials = array();

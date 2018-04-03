@@ -12,7 +12,8 @@ $pool = new ConnectionPool('MySQLDataAccess', 'localhost', 'root', 'rooty', 'cse
 $database = $pool->takeResource();
 $database2 = $pool->takeResource();
 $pool->returnResource($database2);
-$database3 = $pool->takeResource(1000000);
+$database3 = $pool->takeResource(1000000); // Wait for a maximum of 1000000ms (1 second)
+                                           // Returns null if it can't get a connection
 $pool->returnResource($database3);
 
 //$database = new MySQLDataAccess('localhost', 'root', 'rooty', 'cse3241_project');
