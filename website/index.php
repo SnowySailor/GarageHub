@@ -14,11 +14,7 @@ include 'init.php';
         </style>
         <script type="text/javascript">
             function onsubmitLogin() {
-                var name = getvalue('loginName');
-                var pass = getvalue('loginPass');
-                var formData = new FormData();
-                formData.append('name', name);
-                formData.append('password', pass);
+                var formData = makeFormData(['loginName', 'loginPass']);
                 var resp = httpPost('authmanager.php?q=login', formData);
                 if (resp != '') {
                     showError(resp);

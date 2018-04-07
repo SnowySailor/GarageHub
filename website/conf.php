@@ -8,6 +8,7 @@ $_CONF = array();
 $_CONF['httpmode'] = 'http';
 $_CONF['host'] = 'localhost';
 $_CONF['path'] = 'CSE3241';
+$_CONF['httpOnlyCookies'] = true;
 
 // Database
 $_CONF['db'] = array();

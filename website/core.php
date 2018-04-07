@@ -16,14 +16,13 @@ class CSE3241 {
     }
 
     static function database() {
-        global $_CONF;
-        return new MySQLDataAccess($_CONF['db']['host'], $_CONF['db']['user'], $_CONF['db']['password'], $_CONF['db']['database']);
+        return new MySQLDataAccess(CSE3241::getConf('db','host'), CSE3241::getConf('db','user'),
+                                   CSE3241::getConf('db','password'), CSE3241::getConf('db','database'));
     }
 
     static function getUserId() {
-        global $_CONF;
-        if (array_key_exists($_CONF['session']['user_id'], $_SESSION)) {
-            return $_SESSION[$_CONF['session']['user_id']];
+        if (array_key_exists(CSE3241::getConf('session', 'user_id'), $_SESSION)) {
+            return $_SESSION[CSE3241::getConf('session', 'user_id')];
         } else {
             return null;
         }
