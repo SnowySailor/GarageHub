@@ -36,7 +36,7 @@ function login() {
     $sPass = $_POST["password"];
 
     // Get the user's password hash
-    $aRow = $_hDatabase->select("password_hash, id")->from('user')->where('name = ? or email = ?', $sName, $sName)->execute('getRow');
+    $aRow = CSE3241::database()->select("password_hash, id")->from('user')->where('login_name = ?', $sName)->execute('getRow');
     if (count($aRow) == 0) {
         http_response_code(403);
         echo "Invalid username or password.";
@@ -51,20 +51,17 @@ function login() {
     }
 
     // They succeeded, set their user id in the session
-    setSessionValue($_CONF['session']['user_id'], $aRow['id']);
+    CSE3241::setSessionValue(CSE3241::getConf('session', 'user_id'), $aRow['id']);
     http_response_code(200);
-    goHome();
     return;
 }
 
 function logout() {
     session_destroy();
-    goHome();
 }
 
 function goHome() {
-    global $_CONF;
-    header('Location: ' . $_CONF['httpmode'] . '://' . $_CONF['host'] . '/' . $_CONF['path']);
+    header('Location: ' . CSE3241::getConf('httpmode') . '://' . CSE3241::getConf('host') . '/' . CSE3241::getConf('path'));
     return;
 }
 

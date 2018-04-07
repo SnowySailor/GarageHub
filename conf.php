@@ -5,7 +5,7 @@ if (!defined('PROJECT_ONLINE')) exit('No dice!');
 $_CONF = array();
 
 // Webserver location
-$_CONF['httpmode'] = 'http'; // https is other option
+$_CONF['httpmode'] = 'http';
 $_CONF['host'] = 'localhost';
 $_CONF['path'] = 'CSE3241';
 

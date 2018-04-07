@@ -363,14 +363,20 @@ class MySQLDataAccess {
                 break;
             case 'getrow':
                 $uData = $this->getRows(1);
+                if (count($uData) == 0) {
+                    $uData = array();
+                } else {
+                    $uData = $uData[0];
+                }
                 break;
             case 'getfield':
                 $uData = $this->getRows(1);
-                if (count($uData) > 0)
+                if (count($uData) > 0) {
                     // Fancy way of getting the first value from an array of associative arrays
                     $uData = reset($uData[0]);
-                else
+                } else {
                     $uData = NULL;
+                }
                 break;
             case 'getaffectedrows':
                 $uData = $this->_oStmt->affected_rows;
