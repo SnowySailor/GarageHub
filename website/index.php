@@ -67,8 +67,10 @@ include 'init.php';
                 <input type="password" id="loginPass" placeholder="Password"/>
                 <input type="submit" value="Login"/>
             </form>
-        <?php } else { ?>
-            <div>You're logged in</div>
+        <?php } else { 
+            $sUserName = CSE3241::database()->select('name')->from('user')->where(array('id' => CSE3241::getUserId()))->execute('getField');
+        ?>
+            <div>You're logged in as <?php echo $sUserName; ?> </div>
             <input type="button" onclick="onclickLogout();return false" value="Logout"/>
         <?php } ?>
     </body>

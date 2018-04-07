@@ -16,6 +16,7 @@ $_CONF['db']['host'] = 'localhost';
 $_CONF['db']['user'] = 'root';
 $_CONF['db']['password'] = 'rooty';
 $_CONF['db']['database'] = 'cse3241_project';
+$_CONF['db']['debug'] = false;
 
 // Session data
 $_CONF['session'] = array();

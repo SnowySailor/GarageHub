@@ -17,7 +17,8 @@ class CSE3241 {
 
     static function database() {
         return new MySQLDataAccess(CSE3241::getConf('db','host'), CSE3241::getConf('db','user'),
-                                   CSE3241::getConf('db','password'), CSE3241::getConf('db','database'));
+                                   CSE3241::getConf('db','password'), CSE3241::getConf('db','database'),
+                                   CSE3241::getConf('db', 'debug'));
     }
 
     static function getUserId() {
