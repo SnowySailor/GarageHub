@@ -17,6 +17,13 @@ include 'init.php';
                 formData.append('password', pass);
                 var resp = httpPost('authmanager.php?q=login', formData);
                 console.log(resp);
+                window.location.href = window.location.href;
+            }
+
+            function onclickLogout() {
+                var resp = httpPost('authmanager.php?q=logout', null);
+                console.log(resp);
+                window.location.href = window.location.href;
             }
 
             function getelement(id){return id?document.getElementById(id):'';}
@@ -26,20 +33,14 @@ include 'init.php';
                 var xmlhttp = new XMLHttpRequest();
                 xmlhttp.open("POST", urlToPost, false);
                 xmlhttp.send(data);
-                if (xmlhttp.status == 403) { alert('Unauthorized.'); return ''; }
-                if (xmlhttp.status == 404) { alert('Not found.'); return ''; }
-                if (xmlhttp.status == 400) { return xmlhttp.responseText; }
-                if (xmlhttp.status == 200) { return xmlhttp.responseText; }
+                return xmlhttp.responseText;
             }
 
             function httpGet(urlToGet) {
                 var xmlhttp = new XMLHttpRequest();
                 xmlhttp.open("GET", urlToGet, false);
                 xmlhttp.send();
-                if (xmlhttp.status == 403) { alert('Unauthorized.'); return ''; }
-                if (xmlhttp.status == 404) { alert('Not found.'); return ''; }
-                if (xmlhttp.status == 400) { return xmlhttp.responseText; }
-                if (xmlhttp.status == 200) { return xmlhttp.responseText; }
+                return xmlhttp.responseText;
             }
         </script>
     </head>
@@ -52,6 +53,7 @@ include 'init.php';
             </form>
         <?php } else { ?>
             <div>You're logged in</div>
+            <input type="button" onclick="onclickLogout();return false" value="Logout"/>
         <?php } ?>
     </body>
 </html>
