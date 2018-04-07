@@ -20,7 +20,7 @@ BEGIN
     -- All test user's passwords are 'hello'
     WHILE (@i < @numUsers) DO
         -- Insert user
-        INSERT INTO `user` (`id`, `user_group`, `name`, `login_name`, `password`) VALUES 
+        INSERT INTO `user` (`id`, `user_group`, `name`, `login_name`, `password_hash`) VALUES 
             (@i, 1, CONCAT('user', @i), CONCAT('user', @i, '@sample.com'), '$2y$10$h91Prab2RsL9pfuh8Vtkt.4dUEXFrwNBzybxTCOatQ0LiibyHexG2');
         SET @i = @i+1;
     END WHILE;

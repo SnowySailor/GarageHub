@@ -9,6 +9,8 @@ class MySQLDataAccess {
     // CLASS VARIABLES
     // -- --------------------------
 
+    private $_bDebug = false;
+
 
     // Connection class vars
     private $_oConnection;
@@ -27,11 +29,12 @@ class MySQLDataAccess {
     // -- --------------------------
 
 
-    function __construct() {
-        if (func_num_args() == 4) {
-            $this->connect(func_get_arg(0), func_get_arg(1), func_get_arg(2), func_get_arg(3));
+    function __construct($host = '', $user = '', $pass = '', $database = '', $debug = false) {
+        if (func_num_args() >= 4) {
+            $this->connect($host, $user, $pass, $database);
             if (!$this->verifyDatabase()) { $this->debugAndDie("Unable to connect to database."); }
         }
+        $this->_bDebug = $debug;
     }
 
     function appendQuery(MySQLDataAccess $them) {
@@ -324,7 +327,11 @@ class MySQLDataAccess {
 
 
     public function execute($sGetType = '') {
-        $this->printQuery();
+        if ($this->_bDebug) {
+            // Print debug if set
+            $this->printQuery();
+        }
+
         if (!$this->verifyDatabase()) $this->debugAndDie("Error: execution attempted before a database connection was established.");
 
         foreach ($this->_aParams as $uValue) {
@@ -363,14 +370,20 @@ class MySQLDataAccess {
                 break;
             case 'getrow':
                 $uData = $this->getRows(1);
+                if (count($uData) == 0) {
+                    $uData = array();
+                } else {
+                    $uData = $uData[0];
+                }
                 break;
             case 'getfield':
                 $uData = $this->getRows(1);
-                if (count($uData) > 0)
+                if (count($uData) > 0) {
                     // Fancy way of getting the first value from an array of associative arrays
                     $uData = reset($uData[0]);
-                else
+                } else {
                     $uData = NULL;
+                }
                 break;
             case 'getaffectedrows':
                 $uData = $this->_oStmt->affected_rows;
