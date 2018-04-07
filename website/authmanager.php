@@ -25,15 +25,15 @@ switch (strtolower($q)) {
 function login() {
     // If the user didn't specify both their username and password
     // Return a 400 error and tell them to enter both
-    if (!isset($_POST["name"]) || !isset($_POST["password"])) {
+    if (!isset($_POST["loginName"]) || !isset($_POST["loginPass"])) {
         http_response_code(400);
         echo "Please enter both your username and password.";
         return;
     }
 
     // Get username and password
-    $sName = $_POST["name"];
-    $sPass = $_POST["password"];
+    $sName = $_POST["loginName"];
+    $sPass = $_POST["loginPass"];
 
     // Get the user's password hash
     $aRow = CSE3241::database()->select("password_hash, id")->from('user')->where('login_name = ?', $sName)->execute('getRow');

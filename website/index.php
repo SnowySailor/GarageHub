@@ -10,11 +10,7 @@ include 'init.php';
         <script type="text/javascript">
 
             function onsubmitLogin() {
-                var name = getvalue('loginName');
-                var pass = getvalue('loginPass');
-                var formData = new FormData();
-                formData.append('name', name);
-                formData.append('password', pass);
+                var formData = makeFormData(['loginName','loginPass']);
                 var resp = httpPost('authmanager.php?q=login', formData);
                 console.log(resp);
                 window.location.href = window.location.href;
@@ -28,6 +24,7 @@ include 'init.php';
 
             function getelement(id){return id?document.getElementById(id):'';}
             function getvalue(id){return id?getelement(id).value:'';}
+            function makeFormData(ids){var f=new FormData();var d;for(var i=0;i<ids.length;i++){d=getvalue(ids[i]);if(d){f.append(ids[i],d)}}return f;}
 
             function httpPost(urlToPost, data) {
                 var xmlhttp = new XMLHttpRequest();
