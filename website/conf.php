@@ -7,7 +7,7 @@ $_CONF = array();
 // Webserver location
 $_CONF['httpmode'] = 'http';
 $_CONF['host'] = 'localhost';
-$_CONF['path'] = 'CSE3241';
+$_CONF['path'] = 'CSE3241/website'; // 'httpmode' + 'host' + 'path' translates to 'http://localhost/CSE3421/website'
 $_CONF['httpOnlyCookies'] = true;
 
 // Database

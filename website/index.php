@@ -10,7 +10,7 @@ include 'init.php';
         <style>
             body,html{height:100%;width:100%;max-width:100%;min-width:100%;max-height:100%;min-height:100%;margin:0;}
             .hidden{display:none;}
-            #errormsg{width:100%;background-color:#c55;padding:8px;box-sizing: border-box;}
+            #errormsg{width:100%;background-color:#c55;padding:8px;box-sizing:border-box;}
         </style>
         <script type="text/javascript">
             function onsubmitLogin() {
@@ -42,7 +42,7 @@ include 'init.php';
             function removeClass(id,c){var e=getelement(id).classList;if(e.contains(c)){e.remove(c);}}
             function showError(text) {if(text){setInnerHtml('errormsg',text);show('errormsg');}else{setInnerHtml('errormsg','');hide('errormsg');}}
             function setInnerHtml(id,v){getelement(id).innerHTML=v;}
-            function makeFormData(ids){var f=new FormData();var d;for(var i=0;i<ids.length;i++){d=getvalue(ids[i]);if(d){f.append(ids[i],d)}}return f;}
+            function makeFormData(ids){var f=new FormData();for(var i=0;i<ids.length;i++){f.append(ids[i],getvalue(ids[i]));}return f;}
 
             function httpPost(urlToPost, data) {
                 var xmlhttp = new XMLHttpRequest();
