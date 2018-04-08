@@ -39,6 +39,8 @@ CREATE TABLE IF NOT EXISTS `report_data` (
     CONSTRAINT `report_data:garage_id` FOREIGN KEY (`garage_id`) REFERENCES `garage` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Have to change the delimiter from ; to // so that MySQL doesn't interpret ; inside the event as the end of the statement
+-- This is pretty dumb.
 DELIMITER //
 CREATE EVENT IF NOT EXISTS `report_data`
 ON SCHEDULE
@@ -51,6 +53,7 @@ BEGIN
     SELECT G.id, UTC_TIMESTAMP(), CONCAT('[', GROUP_CONCAT(JSON_OBJECT('Floor', P.floor_no, 'Spot', P.spot_no, 'State', state)), ']')
     FROM `garage` G INNER JOIN parking_spot P ON G.id = P.garage_id GROUP BY G.id;
 END //
+-- Reset delimiter to ;
 DELIMITER ;
 
 /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
