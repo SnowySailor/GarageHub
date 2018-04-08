@@ -9,8 +9,21 @@ include 'init.php';
         <title>GarageHub</title>
         <style>
             body,html{height:100%;width:100%;max-width:100%;min-width:100%;max-height:100%;min-height:100%;margin:0;}
-            .hidden{display:none;}
+
             #errormsg{width:100%;background-color:#c55;padding:8px;box-sizing:border-box;}
+            #formcontainer{display:flex;width:100%;height:100%;}
+            #loginform{margin:auto;}
+            #logoutbtn{margin-top:10px;}
+            #maincontent{width:100%;flex:1 1 auto;}
+            #topbar{width:100%;background-color:#aaa;flex:0 1 100px;}
+
+            .actionbutton{width:90px;height:30px;border-style:solid;border-radius:3px;margin-top:10px !important;cursor:pointer;}
+            .content{width:100%;height:100%;display:flex;flex-flow:column;}
+            .centerblock{margin:auto;display:block;}
+            .hidden{display:none;}
+            .loginfield{width:250px;height:30px;border-radius:3px;border-style:solid;padding-left:5px;padding-right:5px;}
+            .topmargin5{margin-top:5px;}
+            .userbox{width:250px;height:100%;background-color:#ccc;box-sizing:border-box;padding:10px;}
         </style>
         <script type="text/javascript">
             function onsubmitLogin() {
@@ -60,18 +73,20 @@ include 'init.php';
         </script>
     </head>
     <body>
-        <div class="hidden" id="errormsg"></div>
-        <?php if (!CSE3241::isUserLoggedIn()) { ?>
-            <form id="loginForm" onsubmit="onsubmitLogin();return false">
-                <input type="text" id="loginName" placeholder="Username"/>
-                <input type="password" id="loginPass" placeholder="Password"/>
-                <input type="submit" value="Login"/>
-            </form>
-        <?php } else { 
-            $sUserName = CSE3241::database()->select('name')->from('user')->where(array('id' => CSE3241::getUserId()))->execute('getField');
-        ?>
-            <div>You're logged in as <?php echo $sUserName; ?> </div>
-            <input type="button" onclick="onclickLogout();return false" value="Logout"/>
-        <?php } ?>
+        <?php include 'top.php' ?>
+            <div id="topbar">
+                <?php include 'topbar.php'; ?>
+            </div>
+            <div id="maincontent">
+                <div class="hidden" id="errormsg"></div>
+                <?php
+                if (!CSE3241::isUserLoggedIn()) { 
+                    include 'loginpage.php';
+                } else { 
+                    include 'home.php';
+                }
+                ?>
+            </div>
+        <?php include 'bottom.php'; ?>
     </body>
 </html>
