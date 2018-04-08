@@ -8,22 +8,24 @@ include 'init.php';
     <head>
         <title>GarageHub</title>
         <style>
-            body,html{height:100%;width:100%;max-width:100%;min-width:100%;max-height:100%;min-height:100%;margin:0;}
+            body,html{height:100%;width:100%;max-width:100%;min-width:100%;max-height:100%;min-height:100%;margin:0;font-family:Palatino;}
 
-            #errormsg{width:100%;background-color:#c55;padding:8px;box-sizing:border-box;}
-            #formcontainer{display:flex;width:100%;height:100%;}
+            #errormsg{width:100%;flex:0 1 auto;background-color:#c55;padding:8px;box-sizing:border-box;}
+            #formcontainer{display:flex;flex: 1 1 auto;width:100%;height:100%;}
             #loginform{margin:auto;}
             #logoutbtn{margin-top:10px;}
-            #maincontent{width:100%;flex:1 1 auto;}
-            #topbar{width:100%;background-color:#aaa;flex:0 1 100px;}
+            #maincontent{width:100%;flex:1 1 auto;display:flex;flex-direction:column;}
+            #sitelabel{flex:0 1 250px;display:flex;justify-content:center;flex-direction:column;padding-left:20px;padding-right:20px;font-size:48px;}
+            #topbar{width:100%;background-color:#aaa;flex:0 1 100px;display:flex;flex-direction:row;}
+            #useractions{flex:1 1 auto;height:100%;}
+            #userbox{flex:0 1 250px;height:100%;background-color:#ccc;box-sizing:border-box;padding:10px;margin-left:auto;}
 
-            .actionbutton{width:90px;height:30px;border-style:solid;border-radius:3px;margin-top:10px !important;cursor:pointer;}
-            .content{width:100%;height:100%;display:flex;flex-flow:column;}
+            .actionbutton{width:90px;height:30px;border-style:solid;border-radius:3px;margin-top:10px !important;cursor:pointer;background-color:#0fbff2;border:none;}
+            .content{width:100%;height:100%;display:flex;flex-flow:column;background-color:#eee;}
             .centerblock{margin:auto;display:block;}
             .hidden{display:none;}
-            .loginfield{width:250px;height:30px;border-radius:3px;border-style:solid;padding-left:5px;padding-right:5px;}
+            .loginfield{width:250px;height:30px;border-radius:3px;border-style:solid;padding-left:5px;padding-right:5px;border:1px solid #aaa;}
             .topmargin5{margin-top:5px;}
-            .userbox{width:250px;height:100%;background-color:#ccc;box-sizing:border-box;padding:10px;}
         </style>
         <script type="text/javascript">
             function onsubmitLogin() {

@@ -1,4 +1,6 @@
-<div class="userbox">
+<div id="sitelabel">GarageHub</div>
+<div id="useractions"></div>
+<div id="userbox">
     <?php if (!defined('PROJECT_ONLINE')) exit('No dice!');
 
     if (CSE3241::isUserLoggedIn()) { 
