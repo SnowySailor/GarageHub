@@ -17,18 +17,16 @@ class CSE3241 {
 
     static function database() {
         return new MySQLDataAccess(CSE3241::getConf('db','host'), CSE3241::getConf('db','user'),
-                                   CSE3241::getConf('db','password'), CSE3241::getConf('db','database'));
+                                   CSE3241::getConf('db','password'), CSE3241::getConf('db','database'),
+                                   CSE3241::getConf('db','debug'));
     }
 
     static function getUserId() {
-        if (array_key_exists(CSE3241::getConf('session', 'user_id'), $_SESSION)) {
-            return $_SESSION[CSE3241::getConf('session', 'user_id')];
-        } else {
-            return null;
-        }
+        return CSE3241::getSessionValue(CSE3241::getConf('session', 'user_id'));
     }
 
     static function isUserLoggedIn() {
+        // If they don't have a user id set, they're not logged in
         return !is_null(CSE3241::getUserId());
     }
 
@@ -37,7 +35,11 @@ class CSE3241 {
     }
 
     static function getSessionValue($sName) {
-        return $_SESSION[$sName];
+        if (array_key_exists($sName, $_SESSION)) {
+            return $_SESSION[$sName];
+        } else {
+            return null;
+        }
     }
 }
 

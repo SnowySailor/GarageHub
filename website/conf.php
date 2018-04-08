@@ -7,7 +7,7 @@ $_CONF = array();
 // Webserver location
 $_CONF['httpmode'] = 'http';
 $_CONF['host'] = 'localhost';
-$_CONF['path'] = 'CSE3241';
+$_CONF['path'] = 'CSE3241/website'; // 'httpmode' + 'host' + 'path' translates to 'http://localhost/CSE3421/website'
 $_CONF['httpOnlyCookies'] = true;
 
 // Database
@@ -16,6 +16,7 @@ $_CONF['db']['host'] = 'localhost';
 $_CONF['db']['user'] = 'root';
 $_CONF['db']['password'] = 'rooty';
 $_CONF['db']['database'] = 'cse3241_project';
+$_CONF['db']['debug'] = false;
 
 // Session data
 $_CONF['session'] = array();

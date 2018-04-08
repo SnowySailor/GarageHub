@@ -9,6 +9,7 @@ if (!isset($_GET['q'])) {
 }
 $q = $_GET['q'];
 
+// Figure out what the caller is trying to do
 switch (strtolower($q)) {
     case 'logout':
         logout();
@@ -17,6 +18,7 @@ switch (strtolower($q)) {
         login();
         break;
     default:
+        // If we don't know what they're doing, send them home
         goHome();
         break;
 }
@@ -50,7 +52,7 @@ function login() {
         return;
     }
 
-    // They succeeded, set their user id in the session
+    // They succeeded, set their user id in the session so we can identify them later
     CSE3241::setSessionValue(CSE3241::getConf('session', 'user_id'), $aRow['id']);
     http_response_code(200);
     return;
