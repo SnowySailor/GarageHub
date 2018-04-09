@@ -82,10 +82,18 @@ include 'init.php';
             <div id="maincontent">
                 <div class="hidden" id="errormsg"></div>
                 <?php
-                if (!CSE3241::isUserLoggedIn()) { 
+                $q = CSE3241::getRequestParam('q');
+                if (CSE3241::isUserLoggedIn()) {
+                    switch ($q) {
+                        case 'report':
+                            include 'reports.php';
+                            break;
+                        default:
+                            include 'home.php';
+                            break;
+                    }
+                } else {
                     include 'loginpage.php';
-                } else { 
-                    include 'home.php';
                 }
                 ?>
             </div>
