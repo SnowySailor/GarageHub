@@ -34,8 +34,9 @@ CREATE TABLE IF NOT EXISTS `parking_spot` (
 CREATE TABLE IF NOT EXISTS `report_data` (
     `garage_id`    int unsigned NOT NULL,
     `time`         datetime     NOT NULL,
+    `type`         varchar(20)  NOT NULL,
     `data`         mediumtext   NOT NULL,
-    PRIMARY KEY (`garage_id`, `time`),
+    PRIMARY KEY (`garage_id`, `type`, `time`),
     CONSTRAINT `report_data:garage_id` FOREIGN KEY (`garage_id`) REFERENCES `garage` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -49,8 +50,9 @@ EVERY 1 DAY
 STARTS (TIMESTAMP(CURRENT_DATE) + INTERVAL 1 DAY + INTERVAL 1 HOUR)
 DO
 BEGIN
-    INSERT INTO `report_data` (`garage_id`, `time`, `data`)
-    SELECT G.id, UTC_TIMESTAMP(), CONCAT('[', GROUP_CONCAT(JSON_OBJECT('Floor', P.floor_no, 'Spot', P.spot_no, 'State', state)), ']')
+    INSERT INTO `report_data` (`garage_id`, `type`, `time`, `data`)
+    SELECT G.id, 'garage_summary', UTC_TIMESTAMP(), CONCAT('[',
+           GROUP_CONCAT(JSON_OBJECT('Floor', P.floor_no, 'Spot', P.spot_no, 'State', state)), ']')
     FROM `garage` G INNER JOIN parking_spot P ON G.id = P.garage_id GROUP BY G.id;
 END //
 -- Reset delimiter to ;
