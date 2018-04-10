@@ -70,9 +70,11 @@ class CSE3241 {
         }
     }
 
-    static function isUserAuthForReport($iReportId, $iUserId) {
+    static function isUserAuthForReport($iReportId, $iUserId = -1) {
         // Admins are always allowed to see things
         if (CSE3241::isUserAdmin()) { return true; }
+
+        if ($iUserId == -1) { $iUserId = CSE3241::getUserId(); }
 
         $iGarageId = CSE3241::database()->select('garage_id')->from('report_data')->where(array('id' => $iReportId))->execute('getField');
         // If there was no report with this id return false.
@@ -83,13 +85,35 @@ class CSE3241 {
         // Check to see if the garage id for the report is managed by the current user
         $iIsAuth = CSE3241::database()->select('1')
                             ->from('garage')
-                            ->where(array('manager_user_id' => CSE3241::getUserId(), 'id' => $iGarageId))
+                            ->where(array('managed_by' => $iUserId, 'id' => $iGarageId))
                             ->execute('getField');
 
         if ($iIsAuth == '1') {
             return true;
         }
         return false;
+    }
+
+    static function isUserAuthForGarage($iGarageId, $iUserId = -1) {
+        if (CSE3241::isUserAdmin()) { return true; }
+
+        if ($iUserId == -1) { $iUserId = CSE3241::getUserId(); }
+
+        // User is auth if they are the manager
+        $iIsAuth = CSE3241::database()->select('1')
+                            ->from('garage')
+                            ->where(array('managed_by' => $iUserId, 'id' => $iGarageId))
+                            ->execute('getField');
+
+        if ($iIsAuth == '1') {
+            return true;
+        }
+        return false;
+    }
+
+    static function failServerError($sText = '') {
+        http_response_code(500);
+        echo $sText;
     }
 
     static function failBadRequest($sText = '') {
