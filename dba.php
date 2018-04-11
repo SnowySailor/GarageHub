@@ -274,7 +274,7 @@ class MySQLDataAccess {
     }
 
     public function on($uOn = [], ...$aParams) {
-        if (($this->getType($uOn) == 's' && strlen($uOn) > 0) || count($uOn) > 0) return $this;
+        if (($this->getType($uOn) == 's' && strlen($uOn) == 0) || (is_array($uOn) && count($uOn) == 0)) return $this;
         $sAppend = ' ON ';
         if (!is_array($uOn)) {
             $sAppend .= $uOn;
@@ -290,6 +290,8 @@ class MySQLDataAccess {
                     $sAppend  .= (count($aParams) == 0 ? '' : ' AND ') . $sName . ' = ?';
                     $this->_aParams[] = $sValue;
                 }
+            } else {
+                $this->on($uOn[0]);
             }
         }
 

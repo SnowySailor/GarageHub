@@ -33,9 +33,9 @@ class CSE3241 {
     static function isUserAdmin($iUserId = -1) {
         if ($iUserId == -1) { $iUserId = CSE3241::getUserId(); }
         // Check to see if the user's user group is 2 (admin)
-        $iIsAdmin = CSE3241::database()->select('1')
+        $iIsAdmin = CSE3241::database()->select('id')
                             ->from('user')
-                            ->where(array('id' => $iUserId, 'user_group' => '2'))
+                            ->where('id = ? and user_group = 2', $iUserId)
                             ->execute('getField');
         if ($iIsAdmin == '1') {
             return true;
