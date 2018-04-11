@@ -10,6 +10,7 @@ include 'init.php';
         <style>
             body,html{height:100%;width:100%;max-width:100%;min-width:100%;max-height:100%;min-height:100%;margin:0;font-family:Palatino;}
 
+            #contentcontainer{width:100%;height:100%;margin:0;}
             #errormsg{width:100%;flex:0 1 auto;background-color:#c55;padding:8px;box-sizing:border-box;}
             #formcontainer{display:flex;flex: 1 1 auto;width:100%;height:100%;}
             #loginform{margin:auto;}
@@ -28,6 +29,15 @@ include 'init.php';
             .topmargin5{margin-top:5px;}
         </style>
         <script type="text/javascript">
+            function main() {
+                loadDefaultHome();
+            }
+
+            function loadDefaultHome() {
+                var resp = httpGet('home.php');
+                setInnerHtml('contentcontainer', resp);
+            }
+
             function onsubmitLogin() {
                 var formData = makeFormData(['loginName', 'loginPass']);
                 var resp = httpPost('authmanager.php?q=login', formData);
@@ -35,7 +45,7 @@ include 'init.php';
                     showError(resp);
                     return;
                 } else {
-                    window.location.href = window.location.href;
+                    loadDefaultHome();
                 }
             }
 
@@ -45,8 +55,22 @@ include 'init.php';
                     showError(resp);
                     return;
                 } else {
-                    window.location.href = window.location.href;
+                    loadDefaultHome();
                 }
+            }
+
+            function onclickGarage(garageId) {
+                var resp = httpGet('home.php?q=garage&garageid=' + garageId);
+                setInnerHtml('contentcontainer', resp);
+            }
+
+            function onclickGarageReport(garageId) {
+                var resp = httpGet('home.php?q=report&garageid=' + garageId);
+                setInnerHtml('contentcontainer', resp);
+            }
+
+            function onclickLogo() {
+                loadDefaultHome();
             }
 
             function getelement(id){return id?document.getElementById(id):'';}
@@ -74,29 +98,7 @@ include 'init.php';
             }
         </script>
     </head>
-    <body>
-        <?php include 'top.php' ?>
-            <div id="topbar">
-                <?php include 'topbar.php'; ?>
-            </div>
-            <div id="maincontent">
-                <div class="hidden" id="errormsg"></div>
-                <?php
-                $q = CSE3241::getRequestParam('q');
-                if (CSE3241::isUserLoggedIn()) {
-                    switch ($q) {
-                        case 'report':
-                            include 'reports.php';
-                            break;
-                        default:
-                            include 'home.php';
-                            break;
-                    }
-                } else {
-                    include 'loginpage.php';
-                }
-                ?>
-            </div>
-        <?php include 'bottom.php'; ?>
+    <body onload="main();return false;">
+        <div id="contentcontainer"></div>
     </body>
 </html>

@@ -1,4 +1,4 @@
-<div id="sitelabel">GarageHub</div>
+<div id="sitelabel" onclick="onclickLogo();return false;">GarageHub</div>
 <div id="useractions"></div>
 <div id="userbox">
     <?php if (!defined('PROJECT_ONLINE')) exit('No dice!');

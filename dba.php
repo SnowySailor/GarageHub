@@ -263,6 +263,7 @@ class MySQLDataAccess {
                 $aParams = array();
                 foreach ($aWhere as $sName => $sValue) {
                     $sAppend  .= (count($aParams) == 0 ? '' : 'AND ') . $sName . ' = ? ';
+                    $aParams[] = $sValue;
                     $this->_aParams[] = $sValue;
                 }
             }

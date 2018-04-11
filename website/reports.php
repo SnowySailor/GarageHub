@@ -1,6 +1,51 @@
 <?php
 if (!defined('PROJECT_ONLINE')) exit('No dice!');
 
+function getReportPage() {
+    $iReportId = CSE3241::tryParseInt(CSE3241::getRequestParam('reportid'), -1);
+    if ($iReportId < 0) {
+        // Show all reports for a sepecific garage
+        $iGarageId = CSE3241::tryParseInt(CSE3241::getRequestParam('garageid'), -1);
+        $sContent = getAllReportsForGarage($iGarageId);
+
+        if (strlen($sContent) == 0) {
+            CSE3241::failBadRequest('Garage id does not exist or not authorized');
+            return;
+        } else {
+            CSE3241::success($sContent);
+            return;
+        }
+    } else if ($iReportId >= 0) {
+        // Parsed a valid integer for the report id
+        $sReportType = CSE3241::database()->select('type')
+                                ->from('report_data')
+                                ->where(array('id' => $iReportId))
+                                ->execute('getField');
+        $sContent = '';
+        switch ($sContent) {
+            case 'garage_summary':
+                $sContent = showGarageSummaryReport($iReportId);
+                break;
+            default:
+                CSE3241::failBadRequest('Unknown report type');
+                return;
+                break;
+        }
+    } else {
+        // Else unable to parse report id
+        CSE3241::failBadRequest('Report does not exist  or not authorized');
+        return;
+    }
+}
+
+// Functions
+function getAllReportsForGarage($iGarageId) {
+    if ($iGarageId < 0) { return ''; }
+    if (!CSE3241::isUserAuthForGarage($iGarageId)) { return ''; }
+    return 'Unimplemented';
+}
+
+
 function showGarageSummaryReport($iReportId) {
     if (!CSE3241::isUserAuthForReport($iReportId)) { 
         CSE3241::failBadRequest("Report does not exist or not authorized");
@@ -26,34 +71,4 @@ function showGarageSummaryReport($iReportId) {
     return 'Unimplemented';
 }
 
-$iReportId = CSE3241::tryParseInt(CSE3241::getRequestParam('reportid'));
-$sContent = '';
-
-// 0 means nothing specified
-if ($iReportId == 0) {
-    // Show all reports
-    $sContent = 'Unimplemented';
 ?>
-
-<?php
-} else if ($iReportId > 0) {
-    // Get the report and display it based on the type
-    $sReportType = CSE3241::database()->select('type')
-                            ->from('report_data')
-                            ->where(array('id' => $iReportId))
-                            ->execute('getField');
-    $sContent = '';
-    switch ($sContent) {
-        case 'garage_summary':
-            $sContent = showGarageSummaryReport($iReportId);
-            break;
-        default:
-            CSE3241::failBadRequest('Unknown report type');
-            break;
-    }
-}
-?>
-
-<div id="reportcontainer">
-    <?php echo $sContent; ?>
-</div>
