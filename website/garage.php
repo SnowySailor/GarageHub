@@ -8,7 +8,62 @@ function getGaragePage() {
         CSE3241::failBadRequest('Garage id does not exist or not authorized');
     }
 
-    return 'Unimplemented';
+    // Show stats for garage
+    // Show floors
+    //$aGarage = CSE3241::database()->select('*')
+
+    $aStateCounts = CSE3241::database()->select('count(*) as c, state')
+                            ->from('parking_spot')
+                            ->where(array('garage_id' => $iGarageId))
+                            ->groupBy('state')
+                            ->orderBy('state')
+                            ->execute('getRows');
+    // available = 1, in-use = 2, out-of-service = 3
+    $sContent = "<table>";
+    $sContent   .= "<tr>";
+        $sContent   .= "<th>State</th>";
+        $sContent   .= "<th>Count</th>";
+    $sContent   .= "</tr>";
+    foreach ($aStateCounts as $aC) {
+        $sState = getStateName($aC["state"]);
+        $iCount = $aC["c"];
+
+        $sContent .= "<tr>";
+            $sContent .= "<td>" . $sState . "</td>";
+            $sContent .= "<td>" . $iCount . "</td>";
+        $sContent .= "</tr>";
+    }
+    $sContent .= "</table>";
+
+
+    $aFloors = CSE3241::database()->select('distinct(floor_no)')
+                        ->from('parking_spot')
+                        ->where(array('garage_id' => $iGarageId))
+                        ->execute('getRows');
+
+    var_dump($aFloors);
+    return $sContent;
+}
+
+function getStateName($iState) {
+    switch ($iState) {
+        case 1:
+            return 'Available';
+        case 2:
+            return 'In Use';
+        case 3:
+            return 'Out Of Service';
+        default:
+            return '';
+    }
+    return '';
+}
+
+function getGarageFloor($iGarageId, $iFloorNo) {
+    // Show stats for floor
+    // Show spots
+    // Allow marking of specific spots as out of service and back
+    // Allow marking of entire floor as out of service
 }
 
 function showGarageTable() {
