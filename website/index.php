@@ -19,7 +19,7 @@ include 'init.php';
             #garagelist{margin-top:20px;margin-left:20px;}
             #loginform{margin:auto;}
             #logoutbtn{margin-top:10px;}
-            #maincontent{width:100%;flex:1 1 auto;display:flex;flex-direction:column;}
+            #maincontent{width:100%;height:100%;flex:1 1 auto;display:flex;flex-direction:column;overflow:scroll;}
             #sitelabel{flex:0 1 250px;display:flex;justify-content:center;flex-direction:column;padding-left:20px;padding-right:20px;font-size:48px;}
             #topbar{width:100%;background-color:#aaa;flex:0 1 100px;display:flex;flex-direction:row;}
             #useractions{flex:1 1 auto;height:100%;}
