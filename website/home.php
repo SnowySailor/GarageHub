@@ -41,6 +41,9 @@ if (CSE3241::isUserLoggedIn()) {
         case 'closegaragefloor':
             $sContent = postCloseGarageFloor();
             break;
+        case 'opengaragefloor':
+            $sContent = postOpenGarageFloor();
+            break;
         default:
             // Show default page
             $sContent = getDefaultPage();

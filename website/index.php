@@ -116,6 +116,17 @@ include 'init.php';
                 }
             }
 
+            function onclickOpenGarageFloor(garageId, floorId) {
+                showError();
+                // Make the post
+                var resp = httpPost('home.php?q=opengaragefloor&garageid=' + garageId + '&floorid=' + floorId, null);
+                if (resp) {
+                    showError(resp);
+                }
+                // Reload the page
+                onclickGarageFloor(garageId, floorId);
+            }
+
             function onclickSpot(state, garageId, floorId, spotId) {
                 showError();
                 // 1 => Available

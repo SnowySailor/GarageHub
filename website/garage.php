@@ -61,6 +61,34 @@ function postCloseGarageFloor() {
     return '';
 }
 
+function postOpenGarageFloor() {
+    $iGarageId = CSE3241::tryParseInt(CSE3241::getRequestParam('garageid'), -1);
+    $iFloorId = CSE3241::tryParseInt(CSE3241::getRequestParam('floorid'), -1);
+    if ($iFloorId < 0 || $iGarageId < 0 || !CSE3241::isUserAuthForGarage($iGarageId)) {
+        CSE3241::failBadRequest('Floor id does not exist or not authorized');
+        return -1;
+    }
+
+    $iRows = CSE3241::database()->update('parking_spot',
+            array(
+                'state' => '1'
+            ),
+            array(
+                'garage_id' => $iGarageId,
+                'floor_no' => $iFloorId
+            )
+        )->execute('getAffectedRows');
+
+    // If no rows were updated, something went wrong
+    if ($iRows == 0) {
+        CSE3241::failBadRequest('Floor id does not exist or not authorized');
+        return -1;
+    }
+
+    // Otherwise success
+    return '';
+}
+
 function getGaragePage() {
     // Parse the garage id
     $iGarageId = CSE3241::tryParseInt(CSE3241::getRequestParam('garageid'), -1);
@@ -142,6 +170,9 @@ function getGarageFloorPage() {
                             ->where(array('id' => $iGarageId))
                             ->execute('getField');
 
+    // Check to see if there are any spots that AREN'T out of service
+    $iHasInServiceSpots = CSE3241::database()->rawQuery('select 1 from parking_spot where garage_id = ? and floor_no = ? and state != 3', $iGarageId, $iFloorId)->execute('getField');
+
     // Get each spot on the floor
     $aSpots = CSE3241::database()->select('*')
                         ->from('parking_spot')
@@ -157,8 +188,12 @@ function getGarageFloorPage() {
         // Get the state counts table
         $sContent .= makeStateTable($aStateCounts);
 
-        // Render the close floor button
-        $sContent .= '<div class="inline" id="closefloor"><input class="actionbutton" id="closefloorbtn" value="Close Floor" type="button" onclick="onclickCloseGarageFloor(' . $iGarageId . ',' .$iFloorId .')"/></div>';
+        if ($iHasInServiceSpots == '1') {
+            // Render the close floor button
+            $sContent .= '<div class="inline" id="closefloor"><input class="actionbutton" id="closefloorbtn" value="Close Floor" type="button" onclick="onclickCloseGarageFloor(' . $iGarageId . ',' .$iFloorId .')"/></div>';
+        } else {
+            $sContent .= '<div class="inline" id="openfloor"><input class="actionbutton" id="openfloorbtn" value="Open Floor" type="button" onclick="onclickOpenGarageFloor(' . $iGarageId . ',' .$iFloorId .')"/></div>';
+        }
     $sContent .= '</div>';
 
     // Make table of spots
