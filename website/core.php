@@ -135,6 +135,14 @@ class CSE3241 {
         if ($arr === array()) return false;
         return array_keys($arr) !== range(0, count($arr) - 1);
     }
+
+    static function httpMethodIsPost() {
+        return $_SERVER['REQUEST_METHOD'] === 'POST';
+    }
+
+    static function httpMethodIsGet() {
+        return $_SERVER['REQUEST_METHOD'] === 'GET';
+    }
 }
 
 ?>

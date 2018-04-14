@@ -2,12 +2,72 @@
 
 if (!defined('PROJECT_ONLINE')) exit('No dice!');
 
+function postSpotState() {
+    $iGarageId = CSE3241::tryParseInt(CSE3241::getRequestParam('garageid'), -1);
+    $iFloorId = CSE3241::tryParseInt(CSE3241::getRequestParam('floorid'), -1);
+    $iSpotId = CSE3241::tryParseInt(CSE3241::getRequestParam('spotid'), -1);
+    $iState = CSE3241::tryParseInt(CSE3241::getRequestParam('state'), -1);
+    if ($iFloorId < 0 || $iGarageId < 0 || $iSpotId < 0 || $iState < 0 || !CSE3241::isUserAuthForGarage($iGarageId)) {
+        CSE3241::failBadRequest('Spot id does not exist or not authorized');
+        return -1;
+    }
+
+    $iRows = CSE3241::database()->update('parking_spot',
+            array(
+                'state' => $iState
+            ),
+            array(
+                'garage_id' => $iGarageId,
+                'floor_no' => $iFloorId,
+                'spot_no' => $iSpotId
+            )
+        )->execute('getAffectedRows');
+
+    // If no rows were updated, something went wrong
+    if ($iRows == 0) {
+        CSE3241::failBadRequest('Spot id does not exist or not authorized');
+        return -1;
+    }
+
+    // Otherwise success
+    return '';
+}
+
+function postCloseGarageFloor() {
+    $iGarageId = CSE3241::tryParseInt(CSE3241::getRequestParam('garageid'), -1);
+    $iFloorId = CSE3241::tryParseInt(CSE3241::getRequestParam('floorid'), -1);
+    if ($iFloorId < 0 || $iGarageId < 0 || !CSE3241::isUserAuthForGarage($iGarageId)) {
+        CSE3241::failBadRequest('Floor id does not exist or not authorized');
+        return -1;
+    }
+
+    $iRows = CSE3241::database()->update('parking_spot',
+            array(
+                'state' => '3'
+            ),
+            array(
+                'garage_id' => $iGarageId,
+                'floor_no' => $iFloorId
+            )
+        )->execute('getAffectedRows');
+
+    // If no rows were updated, something went wrong
+    if ($iRows == 0) {
+        CSE3241::failBadRequest('Floor id does not exist or not authorized');
+        return -1;
+    }
+
+    // Otherwise success
+    return '';
+}
+
 function getGaragePage() {
     // Parse the garage id
     $iGarageId = CSE3241::tryParseInt(CSE3241::getRequestParam('garageid'), -1);
     // Check to see if there were errors parsing or if the user isn't allowed to see the garage
     if ($iGarageId < 0 || !CSE3241::isUserAuthForGarage($iGarageId)) {
         CSE3241::failBadRequest('Garage id does not exist or not authorized');
+        return -1;
     }
 
     $sContent = '';
@@ -35,22 +95,25 @@ function getGaragePage() {
     // Get page's subheader
     $sContent .= makePageSubheader(array('Home' => 'loadDefaultHome()', $sGarageName => "onclickGarage(" . $iGarageId . ")"));
 
-    // Make a table for the states of spots in the garage
-    $sContent .= makeStateTable($aStateCounts);
+    // Container for this content specifically
+    $sContent .= '<div class="inlinecontentcontainer">';
+        // Make a table for the states of spots in the garage
+        $sContent .= makeStateTable($aStateCounts);
 
-    // Listing of floors in garage
-    $sContent .= '<table>';
-    $sContent   .= '<tr>';
-        $sContent   .= '<th>Floor</th>';
-    $sContent   .= '</tr>';
-    foreach ($aFloors as $aF) {
-        $iFloorNo = $aF['floor_no'];
+        // Listing of floors in garage
+        $sContent .= '<table class="inlinetable">';
+        $sContent   .= '<tr>';
+            $sContent   .= '<th>Floor</th>';
+        $sContent   .= '</tr>';
+        foreach ($aFloors as $aF) {
+            $iFloorNo = $aF['floor_no'];
 
-        $sContent .= '<tr>';
-            $sContent .= '<td onclick="onclickGarageFloor(' . $iGarageId . ', ' . $iFloorNo . ')">Floor ' . $iFloorNo . '</td>';
-        $sContent .= '</tr>';
-    }
-    $sContent .= '</table>';
+            $sContent .= '<tr>';
+                $sContent .= '<td onclick="onclickGarageFloor(' . $iGarageId . ', ' . $iFloorNo . ')">Floor ' . $iFloorNo . '</td>';
+            $sContent .= '</tr>';
+        }
+        $sContent .= '</table>';
+    $sContent .= '</div>';
 
     return $sContent;
 }
@@ -60,6 +123,7 @@ function getGarageFloorPage() {
     $iFloorId = CSE3241::tryParseInt(CSE3241::getRequestParam('floorid'), -1);
     if ($iFloorId < 0 || $iGarageId < 0 || !CSE3241::isUserAuthForGarage($iGarageId)) {
         CSE3241::failBadRequest('Floor id does not exist or not authorized');
+        return -1;
     }
 
     $sContent = '';
@@ -88,11 +152,14 @@ function getGarageFloorPage() {
     // Get page's subheader
     $sContent .= makePageSubheader(array('Home' => 'loadDefaultHome()', $sGarageName => 'onclickGarage(' . $iGarageId . ')', 'Floor ' . $iFloorId => 'onclickGarageFloor(' . $iGarageId . ',' . $iFloorId . ')'));
 
-    // Get the state counts table
-    $sContent .= makeStateTable($aStateCounts);
+    // Container for this content specifically
+    $sContent .= '<div class="inlinecontentcontainer">';
+        // Get the state counts table
+        $sContent .= makeStateTable($aStateCounts);
 
-    // Render the close floor button
-    $sContent .= '<div id="closefloor"><input id="closefloorbtn" value="Close Floor" type="button" onclick="onclickCloseGarageFloor(' . $iGarageId . ',' .$iFloorId .')"/></div>';
+        // Render the close floor button
+        $sContent .= '<div class="inline" id="closefloor"><input class="actionbutton" id="closefloorbtn" value="Close Floor" type="button" onclick="onclickCloseGarageFloor(' . $iGarageId . ',' .$iFloorId .')"/></div>';
+    $sContent .= '</div>';
 
     // Make table of spots
     $sContent .= makeSpotGrid($aSpots, 'floorspotgrid', '', 'floorspotrow', 'floorspotcell');
@@ -159,7 +226,7 @@ function makeStateTable($aStateCounts) {
     // available = 1, in-use = 2, out-of-service = 3
     $aValidStates = array(true,true,true);
 
-    $sContent = '<table>';
+    $sContent = '<table class="inlinetable">';
     $sContent   .= '<tr>';
         $sContent   .= '<th>State</th>';
         $sContent   .= '<th>Count</th>';

@@ -33,11 +33,12 @@ include 'init.php';
             .floorspotcell{display: -webkit-box;display: -webkit-flex;display: -ms-flexbox;display: flex;-webkit-flex-flow: row nowrap;-ms-flex-flow: row nowrap;flex-flow: row nowrap;-webkit-box-flex: 1;-webkit-flex-grow: 1;-ms-flex-positive: 1;flex-grow: 1;-webkit-flex-basis: 0;-ms-flex-preferred-size: 0;flex-basis: 0;padding: 0.5em;word-break: break-word;}
             .floorspotrow{width: 100%;display: -webkit-box;display: -webkit-flex;display: -ms-flexbox;display: flex;-webkit-flex-flow: row nowrap;-ms-flex-flow: row nowrap;flex-flow: row nowrap;}
             .hidden{display:none;}
+            .inlinecontentcontainer{display:flex;align-items:center;justify-content:space-around;margin-top:10px;margin-bottom:10px;}
             .loginfield{width:250px;height:30px;border-radius:3px;border-style:solid;padding-left:5px;padding-right:5px;border:1px solid #aaa;}
             .managedtd{width:120px;overflow:hidden;}
             .nametd{width:300px;overflow:hidden;cursor:pointer;color:#07C;}
             .pagesubheader{width:100%;height:50px;text-align:center;font-size:24px;padding-top:10px;padding-bottom:10px;}
-            .parkingspot{width: 100%;height: 4em;border-radius:3px;}
+            .parkingspot{width: 100%;height: 4em;border-radius:3px;cursor:pointer;}
             .reporttd{width:100px;cursor:pointer;color:#07C;}
             .subheaderpiece{color:#07C;cursor:pointer;display:inline-block;}
             .subheaderjoinpiece {display:inline-block;padding-left:10px;padding-right:10px;}
@@ -49,15 +50,18 @@ include 'init.php';
         </style>
         <script type="text/javascript">
             function main() {
+                showError();
                 loadDefaultHome();
             }
 
             function loadDefaultHome() {
+                showError();
                 var resp = httpGet('home.php');
                 setInnerHtml('contentcontainer', resp);
             }
 
             function onsubmitLogin() {
+                showError();
                 var formData = makeFormData(['loginName', 'loginPass']);
                 var resp = httpPost('authmanager.php?q=login', formData);
                 if (resp != '') {
@@ -69,6 +73,7 @@ include 'init.php';
             }
 
             function onclickLogout() {
+                showError();
                 var resp = httpPost('authmanager.php?q=logout', null);
                 if (resp != '') {
                     showError(resp);
@@ -79,40 +84,69 @@ include 'init.php';
             }
 
             function onclickGarage(garageId) {
+                showError();
                 var resp = httpGet('home.php?q=garage&garageid=' + garageId);
                 setInnerHtml('contentcontainer', resp);
             }
 
             function onclickGarageReport(garageId) {
+                showError();
                 var resp = httpGet('home.php?q=report&garageid=' + garageId);
                 setInnerHtml('contentcontainer', resp);
             }
 
             function onclickGarageFloor(garageId, floorId) {
+                showError();
                 var resp = httpGet('home.php?q=garagefloor&garageid=' + garageId + '&floorid=' + floorId);
                 setInnerHtml('contentcontainer', resp);   
             }
 
             function onclickCloseGarageFloor(garageId, floorId) {
-                console.log('Unimplemented');
+                showError();
+                var closeConfirm = confirm("Are you sure you want to close this floor? Click OK to mark all spots on this floor as Out Of Service.");
+                if (closeConfirm) {
+                    // Make the post
+                    var resp = httpPost('home.php?q=closegaragefloor&garageid=' + garageId + '&floorid=' + floorId, null);
+                    if (resp) {
+                        showError(resp);
+                    }
+                    // Reload the page
+                    onclickGarageFloor(garageId, floorId);
+                }
             }
 
             function onclickSpot(state, garageId, floorId, spotId) {
-                console.log('Unimplemented');
+                showError();
+                // 1 => Available
+                // 3 => Out of service
+                var resp = '';
+                if (state === 1) {
+                    // Move to 3
+                    resp = httpPost('home.php?q=spotstate&garageid=' + garageId + '&floorid=' + floorId + '&spotid=' + spotId + '&state=3');
+                } else if (state === 3) {
+                    // Move to 1
+                    resp = httpPost('home.php?q=spotstate&garageid=' + garageId + '&floorid=' + floorId + '&spotid=' + spotId + '&state=1');
+                }
+                if (resp) {
+                    showError(resp);
+                }
+                // Reload page
+                onclickGarageFloor(garageId, floorId);
             }
 
             function onclickLogo() {
+                showError();
                 loadDefaultHome();
             }
 
             function getelement(id){return id?document.getElementById(id):'';}
-            function getvalue(id){return id?getelement(id).value:'';}
+            function getvalue(id){var e=getelement(id);if(e){return e.value}return '';}
             function show(id){removeClass(id,'hidden');}
             function hide(id){addClass(id,'hidden');}
-            function addClass(id,c){var e=getelement(id).classList;if(e.contains(c)){return;}e.add(c);}
-            function removeClass(id,c){var e=getelement(id).classList;if(e.contains(c)){e.remove(c);}}
+            function addClass(id,c){var e=getelement(id);if(e){e=e.classList}else{return;}if(e.contains(c)){return;}e.add(c);}
+            function removeClass(id,c){var e=getelement(id);if(e){e=e.classList}else{return;}if(e.contains(c)){e.remove(c);}}
             function showError(text) {if(text){setInnerHtml('errormsg',text);show('errormsg');}else{setInnerHtml('errormsg','');hide('errormsg');}}
-            function setInnerHtml(id,v){getelement(id).innerHTML=v;}
+            function setInnerHtml(id,v){var e=getelement(id);if(e){e.innerHTML=v;}}
             function makeFormData(ids){var f=new FormData();for(var i=0;i<ids.length;i++){f.append(ids[i],getvalue(ids[i]));}return f;}
 
             function httpPost(urlToPost, data) {
