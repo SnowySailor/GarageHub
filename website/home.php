@@ -43,7 +43,6 @@ if (CSE3241::isUserLoggedIn()) {
             break;
         default:
             // Show default page
-            echo "Displaying default";
             $sContent = getDefaultPage();
             break;
     }

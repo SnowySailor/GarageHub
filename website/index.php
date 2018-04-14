@@ -30,6 +30,7 @@ include 'init.php';
             .addresstd{width:400px;overflow:hidden;}
             .content{width:100%;height:100%;display:flex;flex-flow:column;background-color:#eee;}
             .centerblock{margin:auto;display:block;}
+            .clickable{color:#07C;cursor:pointer;}
             .floorspotcell{display: -webkit-box;display: -webkit-flex;display: -ms-flexbox;display: flex;-webkit-flex-flow: row nowrap;-ms-flex-flow: row nowrap;flex-flow: row nowrap;-webkit-box-flex: 1;-webkit-flex-grow: 1;-ms-flex-positive: 1;flex-grow: 1;-webkit-flex-basis: 0;-ms-flex-preferred-size: 0;flex-basis: 0;padding: 0.5em;word-break: break-word;}
             .floorspotrow{width: 100%;display: -webkit-box;display: -webkit-flex;display: -ms-flexbox;display: flex;-webkit-flex-flow: row nowrap;-ms-flex-flow: row nowrap;flex-flow: row nowrap;}
             .hidden{display:none;}

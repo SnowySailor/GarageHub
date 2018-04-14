@@ -109,7 +109,7 @@ function getGaragePage() {
             $iFloorNo = $aF['floor_no'];
 
             $sContent .= '<tr>';
-                $sContent .= '<td onclick="onclickGarageFloor(' . $iGarageId . ', ' . $iFloorNo . ')">Floor ' . $iFloorNo . '</td>';
+                $sContent .= '<td class="clickable" onclick="onclickGarageFloor(' . $iGarageId . ', ' . $iFloorNo . ')">Floor ' . $iFloorNo . '</td>';
             $sContent .= '</tr>';
         }
         $sContent .= '</table>';
@@ -180,19 +180,21 @@ function showGarageTable() {
         (select user_group from user where id = ?) = 2'
     , $iUserId, $iUserId)->execute('getRows');
 
-    $sContent = '<table id="garagelist">';
-    $sContent .= '<tr>';
-    $sContent   .= '<th>Name</th>';
-    $sContent   .= '<th>Address</th>';
-    $sContent   .= CSE3241::isUserAdmin() ? '<th>Manager</th>' : '';
-    $sContent   .= '<th></td>';
-    $sContent .= '</tr>';
+    $sContent = '<div class="inlinecontentcontainer">';
+        $sContent .= '<table id="garagelist">';
+        $sContent .= '<tr>';
+        $sContent   .= '<th>Name</th>';
+        $sContent   .= '<th>Address</th>';
+        $sContent   .= CSE3241::isUserAdmin() ? '<th>Manager</th>' : '';
+        $sContent   .= '<th></td>';
+        $sContent .= '</tr>';
 
-    foreach ($aGarages as $aGarage) {
-        $sContent .= makeGarageTR($aGarage);
-    }
+        foreach ($aGarages as $aGarage) {
+            $sContent .= makeGarageTR($aGarage);
+        }
 
-    $sContent .= '</table>';
+        $sContent .= '</table>';
+    $sContent .= '</div>';
 
     return $sContent;
 }
