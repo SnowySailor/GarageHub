@@ -130,6 +130,11 @@ class CSE3241 {
         http_response_code(200);
         echo $sText;
     }
+
+    static function isAssoc(array $arr) {
+        if ($arr === array()) return false;
+        return array_keys($arr) !== range(0, count($arr) - 1);
+    }
 }
 
 ?>

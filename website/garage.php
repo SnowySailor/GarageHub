@@ -19,11 +19,21 @@ function getGaragePage() {
                             ->groupBy('state')
                             ->orderBy('state')
                             ->execute('getRows');
+
+    // Get the garage name
+    $sGarageName = CSE3241::database()->select('name')
+                            ->from('garage')
+                            ->where(array('id' => $iGarageId))
+                            ->execute('getField');
+
     // Get all floors for the garage
     $aFloors = CSE3241::database()->select('distinct(floor_no)')
                         ->from('parking_spot')
                         ->where(array('garage_id' => $iGarageId))
                         ->execute('getRows');
+
+    // Get page's subheader
+    $sContent .= makePageSubheader(array('Home' => 'loadDefaultHome()', $sGarageName => "onclickGarage(" . $iGarageId . ")"));
 
     // Make a table for the states of spots in the garage
     $sContent .= makeStateTable($aStateCounts);
@@ -76,7 +86,7 @@ function getGarageFloorPage() {
                         ->execute('getRows');
 
     // Get page's subheader
-    $sContent .= makePageSubheader($sGarageName . ' - Floor ' . $iFloorId);
+    $sContent .= makePageSubheader(array('Home' => 'loadDefaultHome()', $sGarageName => 'onclickGarage(' . $iGarageId . ')', 'Floor ' . $iFloorId => 'onclickGarageFloor(' . $iGarageId . ',' . $iFloorId . ')'));
 
     // Get the state counts table
     $sContent .= makeStateTable($aStateCounts);
@@ -85,7 +95,7 @@ function getGarageFloorPage() {
     $sContent .= '<div id="closefloor"><input id="closefloorbtn" value="Close Floor" type="button" onclick="onclickCloseGarageFloor(' . $iGarageId . ',' .$iFloorId .')"/></div>';
 
     // Make table of spots
-    $sContent .= makeSpotGrid($aSpots);
+    $sContent .= makeSpotGrid($aSpots, 'floorspotgrid', '', 'floorspotrow', 'floorspotcell');
 
     // Return content
     return $sContent;
@@ -210,9 +220,22 @@ function makeSpotGrid($aSpots, $sId = '', $sTableClass = '', $sRowClass = '', $s
     return $sContent;
 }
 
-function makePageSubheader($sText) {
-    if (is_null($sText) || !is_string($sText)) { $sText = ''; }
-    return '<div class="pagesubheader">' . $sText . '</div>';
+function makePageSubheader($aTexts) {
+    if (is_null($aTexts) || !is_array($aTexts)) { $aTexts = array(); }
+    $aContent = array();
+    $sContent = '';
+    if (CSE3241::isAssoc($aTexts)) {
+        foreach ($aTexts as $sText => $sOnclick) {
+            $aContent[] = '<div class="subheaderpiece" onclick="' . $sOnclick . '">' . $sText . '</div>';
+        }
+        $sContent = implode('<div class="subheaderjoinpiece">&#62;</div>', $aContent);
+    } else {
+        foreach ($aTexts as $sText) {
+            $aContent[] = $sText;
+        }
+        $sContent = implode('<div class="subheaderjoinpiece">&#62;</div>', $aContent);
+    }
+    return '<div class="pagesubheader">' . $sContent . '</div>';
 }
 
 function getStateName($iState) {

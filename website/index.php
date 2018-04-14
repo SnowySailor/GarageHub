@@ -15,6 +15,7 @@ include 'init.php';
 
             #contentcontainer{width:100%;height:100%;margin:0;}
             #errormsg{width:100%;flex:0 1 auto;background-color:#c55;padding:8px;box-sizing:border-box;}
+            #floorspotgrid{display: -webkit-box;display: -webkit-flex;display: -ms-flexbox;display: flex;-webkit-flex-flow: column nowrap;-ms-flex-flow: column nowrap;flex-flow: column nowrap;-webkit-box-pack: justify;-webkit-justify-content: space-between;-ms-flex-pack: justify;justify-content: space-between;font-size: 1rem;margin: 0.5rem;line-height: 1.5;}
             #formcontainer{display:flex;flex: 1 1 auto;width:100%;height:100%;}
             #garagelist{margin-top:20px;margin-left:20px;}
             #loginform{margin:auto;}
@@ -26,15 +27,25 @@ include 'init.php';
             #userbox{flex:0 1 250px;height:100%;background-color:#ccc;box-sizing:border-box;padding:10px;margin-left:auto;}
 
             .actionbutton{width:90px;height:30px;border-style:solid;border-radius:3px;margin-top:10px !important;cursor:pointer;background-color:#0fbff2;border:none;}
+            .addresstd{width:400px;overflow:hidden;}
             .content{width:100%;height:100%;display:flex;flex-flow:column;background-color:#eee;}
             .centerblock{margin:auto;display:block;}
-            .nametd{width:300px;overflow:hidden;cursor:pointer;color:#07C;}
-            .addresstd{width:400px;overflow:hidden;}
-            .reporttd{width:100px;cursor:pointer;color:#07C;}
-            .managedtd{width:120px;overflow:hidden;}
+            .floorspotcell{display: -webkit-box;display: -webkit-flex;display: -ms-flexbox;display: flex;-webkit-flex-flow: row nowrap;-ms-flex-flow: row nowrap;flex-flow: row nowrap;-webkit-box-flex: 1;-webkit-flex-grow: 1;-ms-flex-positive: 1;flex-grow: 1;-webkit-flex-basis: 0;-ms-flex-preferred-size: 0;flex-basis: 0;padding: 0.5em;word-break: break-word;}
+            .floorspotrow{width: 100%;display: -webkit-box;display: -webkit-flex;display: -ms-flexbox;display: flex;-webkit-flex-flow: row nowrap;-ms-flex-flow: row nowrap;flex-flow: row nowrap;}
             .hidden{display:none;}
             .loginfield{width:250px;height:30px;border-radius:3px;border-style:solid;padding-left:5px;padding-right:5px;border:1px solid #aaa;}
+            .managedtd{width:120px;overflow:hidden;}
+            .nametd{width:300px;overflow:hidden;cursor:pointer;color:#07C;}
+            .pagesubheader{width:100%;height:50px;text-align:center;font-size:24px;padding-top:10px;padding-bottom:10px;}
+            .parkingspot{width: 100%;height: 4em;border-radius:3px;}
+            .reporttd{width:100px;cursor:pointer;color:#07C;}
+            .subheaderpiece{color:#07C;cursor:pointer;display:inline-block;}
+            .subheaderjoinpiece {display:inline-block;padding-left:10px;padding-right:10px;}
             .topmargin5{margin-top:5px;}
+
+            .available{background-color: #0ff2b4;}
+            .inuse{background-color:#f2b40f;}
+            .outofservice{background-color:#f20f4e;}
         </style>
         <script type="text/javascript">
             function main() {
