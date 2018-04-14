@@ -82,7 +82,7 @@ function getGarageFloorPage() {
     $sContent .= makeStateTable($aStateCounts);
 
     // Render the close floor button
-    $sContent .= '<input id="closefloorbtn" value="Close Floor" type="button" onclick="onclickCloseGarageFloor(' . $iGarageId . ',' .$iFloorId .')"/>';
+    $sContent .= '<div id="closefloor"><input id="closefloorbtn" value="Close Floor" type="button" onclick="onclickCloseGarageFloor(' . $iGarageId . ',' .$iFloorId .')"/></div>';
 
     // Make table of spots
     $sContent .= makeSpotGrid($aSpots);

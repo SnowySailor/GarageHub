@@ -28,6 +28,9 @@ if (CSE3241::isUserLoggedIn()) {
             // Show a specific garage page
             $sContent = getGaragePage();
             break;
+        case 'garagefloor':
+            $sContent = getGarageFloorPage();
+            break;
         default:
             // Show default page
             $sContent = getDefaultPage();

@@ -77,6 +77,19 @@ include 'init.php';
                 setInnerHtml('contentcontainer', resp);
             }
 
+            function onclickGarageFloor(garageId, floorId) {
+                var resp = httpGet('home.php?q=garagefloor&garageid=' + garageId + '&floorid=' + floorId);
+                setInnerHtml('contentcontainer', resp);   
+            }
+
+            function onclickCloseGarageFloor(garageId, floorId) {
+                console.log('Unimplemented');
+            }
+
+            function onclickSpot(state, garageId, floorId, spotId) {
+                console.log('Unimplemented');
+            }
+
             function onclickLogo() {
                 loadDefaultHome();
             }
