@@ -28,24 +28,24 @@ BEGIN
     SET @i = 1;
     SET @j = 1;
     SET @k = 1;
-    WHILE (@i < @numGarages) DO
+    WHILE (@i <= @numGarages) DO
         -- Assign all garages to the users
         INSERT INTO `garage` (`name`, `managed_by`) VALUES (CONCAT('garage', @i), (@i%(@numUsers) + 1));
 
         -- Loop over floors, give each garage 6 floors
-        WHILE (@j < 6) DO
+        WHILE (@j <= 6) DO
             -- Loop over spots, give each floor 100 spots
-            WHILE (@k < 100) DO
+            WHILE (@k <= 100) DO
                 -- Insert the spot
                 INSERT INTO `parking_spot` (`floor_no`, `spot_no`, `garage_id`) VALUES (@j, @k, @i);
                 SET @k = @k+1;
             END WHILE;
             SET @j = @j+1;
-            SET @k = 0;
+            SET @k = 1;
         END WHILE;
 
         SET @i = @i+1;
-        SET @j = 0;
+        SET @j = 1;
     END WHILE;
 END;
 //
