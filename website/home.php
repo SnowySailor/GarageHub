@@ -35,6 +35,10 @@ if (CSE3241::isUserLoggedIn()) {
         case 'garagefloor':
             $sContent = getGarageFloorPage();
             break;
+        case 'creategarage':
+            if ($bIsPost) { $sContent = postCreateGarage(); }
+            else          { $sContent = getCreateGaragePage(); }
+            break;
         case 'spotstate':
             $sContent = postSpotState();
             break;

@@ -11,7 +11,6 @@ class MySQLDataAccess {
 
     private $_bDebug = false;
 
-
     // Connection class vars
     private $_oConnection;
     private $_oStmt;
@@ -29,12 +28,13 @@ class MySQLDataAccess {
     // -- --------------------------
 
 
-    function __construct($host = '', $user = '', $pass = '', $database = '', $debug = false) {
+    function __construct($host = '', $user = '', $pass = '', $database = '', $instaclose = false, $debug = false) {
         if (func_num_args() >= 4) {
             $this->connect($host, $user, $pass, $database);
             if (!$this->verifyDatabase()) { $this->debugAndDie("Unable to connect to database."); }
         }
         $this->_bDebug = $debug;
+        $this->_bCloseAfterSingleUse = $instaclose;
     }
 
     function appendQuery(MySQLDataAccess $them) {
@@ -370,11 +370,12 @@ class MySQLDataAccess {
         switch (strtolower($sGetType)) {
             case 'getrows':
                 $uData = $this->getRows();
+                if (count($uData) == 0) { $uData = null; }
                 break;
             case 'getrow':
                 $uData = $this->getRows(1);
                 if (count($uData) == 0) {
-                    $uData = array();
+                    $uData = null;
                 } else {
                     $uData = $uData[0];
                 }
@@ -391,11 +392,17 @@ class MySQLDataAccess {
             case 'getaffectedrows':
                 $uData = $this->_oStmt->affected_rows;
                 break;
+            case 'insertid':
+                $uData = $this->_oStmt->insert_id;
+                break;
             default:
                 $uData = null;
                 break;
         }
         $this->clean();
+        if ($this->_bCloseAfterSingleUse) {
+            $this->disconnect();
+        }
         return $uData;
     }
 

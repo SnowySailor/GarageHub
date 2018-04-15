@@ -12,7 +12,9 @@ include 'init.php';
             td {border-bottom:1px solid #bbb;}
             table{border-collapse:collapse;}
             td{text-align:center;padding-top:5px;padding-bottom:5px;}
+            label{margin-right:10px;}
 
+            #addfloorbutton{cursor:pointer;background-color:#0fbff2;width:20px;text-align:center;height:20px;border-radius:3px;line-height:21px;margin-top:10px;margin-bottom:30px;}
             #contentcontainer{width:100%;height:100%;margin:0;}
             #errormsg{width:100%;flex:0 1 auto;background-color:#c55;padding:8px;box-sizing:border-box;}
             #floorspotgrid{display: -webkit-box;display: -webkit-flex;display: -ms-flexbox;display: flex;-webkit-flex-flow: column nowrap;-ms-flex-flow: column nowrap;flex-flow: column nowrap;-webkit-box-pack: justify;-webkit-justify-content: space-between;-ms-flex-pack: justify;justify-content: space-between;font-size: 1rem;margin: 0.5rem;line-height: 1.5;}
@@ -21,6 +23,8 @@ include 'init.php';
             #loginform{margin:auto;}
             #logoutbtn{margin-top:10px;}
             #maincontent{width:100%;height:100%;flex:1 1 auto;display:flex;flex-direction:column;overflow:scroll;}
+            #newgarage{margin:auto;}
+            #newgaragefloors{margin-top:20px;}
             #sitelabel{flex:0 1 250px;display:flex;justify-content:center;flex-direction:column;padding-left:20px;padding-right:20px;font-size:48px;}
             #topbar{width:100%;background-color:#aaa;flex:0 1 100px;display:flex;flex-direction:row;}
             #useractions{flex:1 1 auto;height:100%;}
@@ -35,6 +39,7 @@ include 'init.php';
             .floorspotrow{width: 100%;display: -webkit-box;display: -webkit-flex;display: -ms-flexbox;display: flex;-webkit-flex-flow: row nowrap;-ms-flex-flow: row nowrap;flex-flow: row nowrap;}
             .hidden{display:none;}
             .inlinecontentcontainer{display:flex;align-items:center;justify-content:space-around;margin-top:10px;margin-bottom:10px;}
+            .inputfield{margin-top:5px;height:20px;border-radius:3px;border-style:solid;padding-left:5px;padding-right:5px;border:1px solid #aaa;}
             .loginfield{width:250px;height:30px;border-radius:3px;border-style:solid;padding-left:5px;padding-right:5px;border:1px solid #aaa;}
             .managedtd{width:120px;overflow:hidden;}
             .nametd{width:300px;overflow:hidden;cursor:pointer;color:#07C;}
@@ -44,6 +49,7 @@ include 'init.php';
             .subheaderpiece{color:#07C;cursor:pointer;display:inline-block;}
             .subheaderjoinpiece {display:inline-block;padding-left:10px;padding-right:10px;}
             .topmargin5{margin-top:5px;}
+            .width200{width:200px;}
 
             .available{background-color: #0ff2b4;}
             .inuse{background-color:#f2b40f;}
@@ -125,6 +131,65 @@ include 'init.php';
                 }
                 // Reload the page
                 onclickGarageFloor(garageId, floorId);
+            }
+
+            function onclickCreateGarage() {
+                showError();
+                var resp = httpGet('home.php?q=creategarage');
+                setInnerHtml('contentcontainer', resp);  
+            }
+
+            function onclickAddFloor(currentFloor) {
+                if (!getelement('floorinputs') || !getelement('floorinputs')) { return; }
+
+                var spotCounts = [];
+                for (var i = 1; i <= currentFloor; i++) {
+                    count = getvalue('floor_' + i) || 0;
+                    spotCounts[i] = count;
+                }
+
+                var newFloor = currentFloor + 1;
+                var newFloorInner = '';
+                for (var i = 1; i <= currentFloor; i++) {
+                    newFloorInner += '<label class="inputlabel">Floor ' + i + '</label><input class="inputfield" id="floor_' + i + '" type="number" min="0" placeholder="Spot Count" value="' + spotCounts[i] + '"/>' + '</br>';
+                }
+                newFloorInner += '<label class="inputlabel">Floor ' + newFloor + '</label><input class="inputfield" id="floor_' + newFloor + '" type="number" min="0" placeholder="Spot Count"/>' + '</br>';
+
+                // Create new add button
+                var newCreateInner = '<div onclick="onclickAddFloor(' + newFloor + ')" id="addfloorbutton">+</div>';
+
+                // Set new data
+                setInnerHtml('addfloorbutton', newCreateInner);
+                setInnerHtml('floorinputs', newFloorInner);
+            }
+
+            function onclickSubmitGarage() {
+                showError();
+
+                // Construct object
+                var obj = {
+                    Location: [],
+                    Name: getvalue('newgaragename'),
+                    ManagerId: getvalue('newgaragemanager'),
+                    SpotCounts: []
+                };
+                // Get location
+                obj.Location.push(getvalue('newgarageaddress'));
+                obj.Location.push(getvalue('newgaragecity'));
+                obj.Location.push(getvalue('newgaragestate'));
+                obj.Location.push(getvalue('newgaragecountry'));
+
+                // Get floors
+                var i = 1;
+                while (getvalue('floor_' + i)) {
+                    obj.SpotCounts.push(getvalue('floor_' + i));
+                    i++;
+                }
+
+                var resp = httpPost('home.php?q=creategarage', JSON.stringify(obj));
+                if (resp) {
+                    showError(resp);
+                }
             }
 
             function onclickSpot(state, garageId, floorId, spotId) {

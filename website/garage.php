@@ -2,6 +2,161 @@
 
 if (!defined('PROJECT_ONLINE')) exit('No dice!');
 
+function getCreateGaragePage() {
+    if (!CSE3241::isUserAdmin()) {
+        CSE3241::failBadRequest('Not authorized');
+    }
+
+    $sContent = '';
+
+    // Get page's subheader
+    $sContent .= makePageSubheader(array('Home' => 'loadDefaultHome()', 'Create Garage' => 'onclickCreateGarage()'));
+
+    $sContent .= '<div class="inlinecontentcontainer">';
+        $sContent .= '<div id="newgaragecontainer">';
+            // General fields
+            $sContent .= '<div id="newgaragefields">';
+                $sContent .= '<input class="width200 inputfield" id="newgaragename" required type="text" maxlen="30" placeholder="Name"/>' . '</br>';
+                $sContent .= '<input class="width200 inputfield" id="newgarageaddress" required type="text" maxlen="100" placeholder="Address"/>' . '</br>';
+                $sContent .= '<input class="width200 inputfield" id="newgaragecity" required type="text" maxlen="50" placeholder="City"/>' . '</br>';
+                $sContent .= '<input class="width200 inputfield" id="newgaragestate" required type="text" maxlen="50" placeholder="State"/>' . '</br>';
+                $sContent .= '<input class="width200 inputfield" id="newgaragecountry" required type="text" maxlen="50" placeholder="Country"/>' . '</br>';
+                $sContent .= '<input class="width200 inputfield" id="newgaragemanager" required type="number" min="0" placeholder="Manager ID"/>' . '</br>';
+            $sContent .= '</div>';
+
+            // Floors
+            $sContent .= '<div id="newgaragefloors">';
+                $sContent .= '<div id="floorinputs">';
+                    $sContent .='<label class="inputlabel">Floor 1</label><input id="floor_1" class="inputfield" type="number" min="0" placeholder="Spot Count"/>' . '</br>';
+                $sContent .= '</div>';
+                $sContent .= '<div id="addfloorbutton">';
+                    $sContent .= '<div onclick="onclickAddFloor(1)" id="addfloor">+</div>';
+                $sContent .= '</div>';
+            $sContent .= '</div>';
+
+            // Submit button
+            $sContent .= '<input type="button" class="actionbutton" onclick="onclickSubmitGarage()" value="Create"/>';
+        $sContent .= '</div>';
+    $sContent .= '</div>';
+
+    return $sContent;
+}
+
+function postCreateGarage() {
+    if (!CSE3241::isUserAdmin()) {
+        CSE3241::failBadRequest('Not authorized');
+        return -1;
+    }
+
+    $sPostBody = CSE3241::getHttpBody();
+    $aGarageData = json_decode($sPostBody, true);
+
+    if (is_null($aGarageData)) {
+        CSE3241::failBadRequest('Invalid JSON');
+        return -1;
+    }
+
+    $aGarageFloors = CSE3241::getArrayElem($aGarageData, 'SpotCounts');
+    $aGarageLocation = CSE3241::getArrayElem($aGarageData, 'Location');
+    $sGarageName = CSE3241::getArrayElem($aGarageData, 'Name');
+    $iManagerId = CSE3241::getArrayElem($aGarageData, 'ManagerId');
+
+    $sError = '';
+    if (is_null($aGarageFloors)) {
+        $sError .= ' Spot Counts required.';
+    }
+    if (is_null($aGarageLocation)) {
+        $sError .= ' Location required.';
+    }
+    if (is_null($sGarageName)) {
+        $sError .= ' Name required.';
+    }
+    if (is_null($iManagerId)) {
+        $sError .= ' ManagerId required.';
+    } else if (is_null(CSE3241::getUser($iManagerId))) {
+        $sError .= ' ManagerId is not a valid user id.';
+    }
+    if (count($aGarageLocation) != 4) {
+        $sError .= ' Location must be of the form [address, city, region, country]';
+    }
+    foreach ($aGarageLocation as $aLoc) {
+        if (!is_string($aLoc)) {
+            $sError .= ' Location must be of the form [address, city, region, country]';
+            break;
+        }
+    }
+
+    // If there were errors, send failure
+    if ($sError != '') {
+        CSE3241::failBadRequest('Not saved. ' . $sError);
+        return -1;
+    }
+
+    // Pass in false for close after single use so we can do many queries
+    $hDatabase = CSE3241::database(false);
+    // Begin transaction
+    $hDatabase->beginT();
+    
+    // Create garage
+    $iGarageId = $hDatabase->insert('garage',
+        array(
+            'managed_by' => $iManagerId,
+            'name' => $sGarageName,
+            'address' => $aGarageLocation[0],
+            'city' => $aGarageLocation[1],
+            'region' => $aGarageLocation[2],
+            'country' => $aGarageLocation[3]
+        )
+    )->execute('insertId');
+
+    // Make sure that garage creation was successful
+    if ($iGarageId == 0) {
+        // Need to interrogate database because insertid could be 0, but it also returns 0 on failure
+        if (is_null($hDatabase->select('*')->from('garage')->where('id > 0')->execute('getRow'))) {
+            // Definitely a failure because there are garages with id's higher than 0
+            $hDatabase->rollbackT();
+            CSE3241::failServerError('Server Error. Unable to save garage.');
+            return -1;
+        }
+        // Otherwise we have to assume it was successful. Could have issues if failed to insert garage_id = 0
+        // (aka first insert) unless we start auto incremement at 1 for table
+    }
+
+    // Create floors and parking spots
+    foreach ($aGarageFloors as $iFloorNo => $iSpotCount) {
+        // Get spot count for floor
+        $iSpotCount = CSE3241::tryParseInt($iSpotCount, -1);
+
+        // Make sure that the spot count is a valid int
+        if (is_null($iSpotCount) || $iSpotCount < 0) {
+            // If not, rollback transaction and quit
+            $hDatabase->rollbackT();
+            CSE3241::failBadRequest('Unable to parse spot count for floor ' . ($iFloorNo + 1));
+            return -1;
+        }
+
+        // Create all spots in floor
+        for ($i = 1; $i <= $iSpotCount; $i++) {
+            $iSuccess = $hDatabase->insert('parking_spot',
+                array(
+                    'garage_id' => $iGarageId,
+                    'floor_no' => $iFloorNo,
+                    'spot_no' => $i
+                )
+            )->execute('getAffectedRows');
+            if ($iSuccess != 1) {
+                CSE3241::failServerError('Server Error. Unable to save parking spot');
+                return -1;
+            }
+        }
+    }
+
+    // Commit transaction
+    $hDatabase->commitT();
+
+    return '';
+}
+
 function postSpotState() {
     $iGarageId = CSE3241::tryParseInt(CSE3241::getRequestParam('garageid'), -1);
     $iFloorId = CSE3241::tryParseInt(CSE3241::getRequestParam('floorid'), -1);
@@ -215,7 +370,13 @@ function showGarageTable() {
         (select user_group from user where id = ?) = 2'
     , $iUserId, $iUserId)->execute('getRows');
 
-    $sContent = '<div class="inlinecontentcontainer">';
+    $sContent = '';
+
+    if (CSE3241::isUserAdmin()) {
+        $sContent .= '<div id="newgarage"><input type="button" class="actionbutton" value="Create Garage" onclick="onclickCreateGarage()"/></div>';
+    }
+
+    $sContent .= '<div class="inlinecontentcontainer">';
         $sContent .= '<table id="garagelist">';
         $sContent .= '<tr>';
         $sContent   .= '<th>Name</th>';

@@ -4,7 +4,7 @@ CREATE DATABASE IF NOT EXISTS `cse3241_project`;
 USE `cse3241_project`;
 
 CREATE TABLE IF NOT EXISTS `user` (
-    `id`            int unsigned  PRIMARY KEY,
+    `id`            int unsigned  PRIMARY KEY AUTO_INCREMENT,
     `user_group`    int           NOT NULL DEFAULT 1,
     `name`          nvarchar(30)  NOT NULL,
     `login_name`    nvarchar(100) NOT NULL,
@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS `user` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `garage` (
-    `id`           int unsigned PRIMARY KEY,
+    `id`           int unsigned PRIMARY KEY AUTO_INCREMENT,
     `name`         nvarchar(30)  NOT NULL,
     `address`      nvarchar(100) NOT NULL DEFAULT '',
     `city`         nvarchar(50)  NOT NULL DEFAULT '',

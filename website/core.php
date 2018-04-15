@@ -15,13 +15,14 @@ class CSE3241 {
         return null;
     }
 
-    static function database() {
+    static function database($bCloseAfterSingleUse = true) {
         return new MySQLDataAccess(CSE3241::getConf('db','host'), CSE3241::getConf('db','user'),
                                    CSE3241::getConf('db','password'), CSE3241::getConf('db','database'),
-                                   CSE3241::getConf('db','debug'));
+                                   $bCloseAfterSingleUse, CSE3241::getConf('db','debug'));
     }
 
     static function tryParseInt($sInt, $iDefault = 0) {
+        if (is_int($sInt)) { return $sInt; }
         if (!is_numeric($sInt)) { return $iDefault; }
         return intval($sInt);
     }
@@ -33,7 +34,7 @@ class CSE3241 {
     static function isUserAdmin($iUserId = -1) {
         if ($iUserId == -1) { $iUserId = CSE3241::getUserId(); }
         // Check to see if the user's user group is 2 (admin)
-        $iIsAdmin = CSE3241::database()->select('id')
+        $iIsAdmin = CSE3241::database()->select('1')
                             ->from('user')
                             ->where('id = ? and user_group = 2', $iUserId)
                             ->execute('getField');
@@ -68,6 +69,22 @@ class CSE3241 {
         } else {
             return null;
         }
+    }
+
+    static function getArrayElem($aArray, $uElem) {
+        if (!is_array($aArray)) { return null; }
+        if (is_integer($uElem)) {
+            if (CSE3241::isAssoc($aArray)) {
+                return null;
+            }
+            if (count($aArray) > $uElem) {
+                return $aArray[$uElem];
+            }
+            return null;
+        } else if (array_key_exists($uElem, $aArray)) {
+            return $aArray[$uElem];
+        }
+        return null;
     }
 
     static function isUserAuthForReport($iReportId, $iUserId = -1) {
@@ -111,6 +128,18 @@ class CSE3241 {
         return false;
     }
 
+    static function getUser($iUserId) {
+        $iUserId = CSE3241::tryParseInt($iUserId, -1);
+        if ($iUserId < 0) {
+            return null;
+        }
+        $aUser = CSE3241::database()->select('*')
+                        ->from('user')
+                        ->where(array('id' => $iUserId))
+                        ->execute('getRow');
+        return $aUser;
+    }
+
     static function failServerError($sText = '') {
         http_response_code(500);
         echo $sText;
@@ -129,6 +158,16 @@ class CSE3241 {
     static function success($sText = '') {
         http_response_code(200);
         echo $sText;
+    }
+
+    static function getHttpBody() {
+        $sText = file_get_contents('php://input');
+        // It can return values that evaluate to false but aren't false
+        // Need === comparison
+        if ($sText === false) {
+            return '';
+        }
+        return $sText;
     }
 
     static function isAssoc(array $arr) {
