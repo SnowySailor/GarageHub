@@ -41,11 +41,11 @@ BEGIN
                 SET @k = @k+1;
             END WHILE;
             SET @j = @j+1;
+            SET @k = 0;
         END WHILE;
 
         SET @i = @i+1;
         SET @j = 0;
-        SET @k = 0;
     END WHILE;
 END;
 //

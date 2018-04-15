@@ -190,6 +190,8 @@ include 'init.php';
                 if (resp) {
                     showError(resp);
                 }
+
+                loadDefaultHome();
             }
 
             function onclickSpot(state, garageId, floorId, spotId) {
