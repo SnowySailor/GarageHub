@@ -48,7 +48,8 @@ DELIMITER //
 CREATE EVENT IF NOT EXISTS `report_data`
 ON SCHEDULE
 -- Run every day starting at the next midnight
-EVERY 1 MINUTE
+EVERY 1 HOUR
+STARTS (TIMESTAMP(CURRENT_DATE) + INTERVAL 1 DAY + INTERVAL 1 HOUR)
 DO
 BEGIN
     INSERT INTO `report_data` (`garage_id`, `type`, `time`, `data`)
