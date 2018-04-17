@@ -23,7 +23,7 @@ include 'init.php';
             #loginform{margin:auto;}
             #logoutbtn{margin-top:10px;}
             #maincontent{width:100%;height:100%;flex:1 1 auto;display:flex;flex-direction:column;overflow:scroll;}
-            #newgarage{margin:auto;}
+            #newgarage{margin-left:50%;}
             #newgaragefloors{margin-top:20px;}
             #reporttable td{width:200px;}
             #sitelabel{flex:0 1 250px;display:flex;justify-content:center;flex-direction:column;padding-left:20px;padding-right:20px;font-size:48px;}
@@ -215,9 +215,10 @@ include 'init.php';
                 }
                 if (resp) {
                     showError(resp);
+                } else {
+                    // Reload page
+                    onclickGarageFloor(garageId, floorId);
                 }
-                // Reload page
-                onclickGarageFloor(garageId, floorId);
             }
 
             function onclickLogo() {

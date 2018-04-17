@@ -51,6 +51,7 @@ class MySQLDataAccess {
 
     public function reconnect($host, $user, $password, $database = -1) {
         connect($host, $user, $password, $database);
+        if (!$this->verifyDatabase()) { $this->debugAndDie("Unable to connect to database."); }
     }
 
     public function connect($host, $user, $password, $database = -1) {

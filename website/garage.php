@@ -60,7 +60,6 @@ function postCreateGarage() {
     $aGarageLocation = CSE3241::getArrayElem($aGarageData, 'Location');
     $sGarageName = CSE3241::getArrayElem($aGarageData, 'Name');
     $iManagerId = CSE3241::getArrayElem($aGarageData, 'ManagerId');
-    var_dump($aGarageLocation);
 
     $sError = '';
     if (is_null($aGarageFloors) || count($aGarageFloors) == 0) {
