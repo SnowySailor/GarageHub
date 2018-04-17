@@ -6,7 +6,7 @@ $q = CSE3241::getRequestParam('q');
 
 if (is_null($q)) {
     // If there is nothing set, return them to home
-    goHome();
+    CSE3241::goHome();
     return;
 }
 
@@ -20,7 +20,7 @@ switch (strtolower($q)) {
         break;
     default:
         // If we don't know what they're doing, send them home
-        goHome();
+        CSE3241::goHome();
         break;
 }
 
@@ -39,7 +39,7 @@ function login() {
 
     // Get the user's password hash
     $aRow = CSE3241::database()->select("password_hash, id")->from('user')->where('login_name = ?', $sName)->execute('getRow');
-    if (count($aRow) == 0) {
+    if (is_null($aRow)) {
         CSE3241::failBadAuth("Invalid username or password");
         return;
     }
@@ -58,11 +58,6 @@ function login() {
 
 function logout() {
     session_destroy();
-}
-
-function goHome() {
-    header('Location: ' . CSE3241::getConf('httpmode') . '://' . CSE3241::getConf('host') . '/' . CSE3241::getConf('path'));
-    return;
 }
 
 ?>

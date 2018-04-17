@@ -25,6 +25,7 @@ include 'init.php';
             #maincontent{width:100%;height:100%;flex:1 1 auto;display:flex;flex-direction:column;overflow:scroll;}
             #newgarage{margin:auto;}
             #newgaragefloors{margin-top:20px;}
+            #reporttable td{width:200px;}
             #sitelabel{flex:0 1 250px;display:flex;justify-content:center;flex-direction:column;padding-left:20px;padding-right:20px;font-size:48px;}
             #topbar{width:100%;background-color:#aaa;flex:0 1 100px;display:flex;flex-direction:row;}
             #useractions{flex:1 1 auto;height:100%;}
@@ -100,6 +101,12 @@ include 'init.php';
                 showError();
                 var resp = httpGet('home.php?q=report&garageid=' + garageId);
                 setInnerHtml('contentcontainer', resp);
+            }
+
+            function onclickGarageReportRow(reportId) {
+                showError();
+                var resp = httpGet('home.php?q=report&reportid=' + reportId);
+                setInnerHtml('contentcontainer', resp);   
             }
 
             function onclickGarageFloor(garageId, floorId) {
@@ -189,9 +196,9 @@ include 'init.php';
                 var resp = httpPost('home.php?q=creategarage', JSON.stringify(obj));
                 if (resp) {
                     showError(resp);
+                } else {
+                    loadDefaultHome();
                 }
-
-                loadDefaultHome();
             }
 
             function onclickSpot(state, garageId, floorId, spotId) {

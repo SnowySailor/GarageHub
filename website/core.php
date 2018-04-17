@@ -170,6 +170,11 @@ class CSE3241 {
         return $sText;
     }
 
+    static function goHome() {
+        header('Location: ' . CSE3241::getConf('httpmode') . '://' . CSE3241::getConf('host') . '/' . CSE3241::getConf('path'));
+        return;
+    }
+
     static function isAssoc(array $arr) {
         if ($arr === array()) return false;
         return array_keys($arr) !== range(0, count($arr) - 1);

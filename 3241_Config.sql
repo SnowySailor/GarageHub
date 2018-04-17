@@ -32,12 +32,14 @@ CREATE TABLE IF NOT EXISTS `parking_spot` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `report_data` (
+    `id`           int unsigned PRIMARY KEY AUTO_INCREMENT,
     `garage_id`    int unsigned NOT NULL,
     `time`         datetime     NOT NULL,
     `type`         varchar(20)  NOT NULL,
     `data`         mediumtext   NOT NULL,
-    PRIMARY KEY (`garage_id`, `type`, `time`),
-    CONSTRAINT `report_data:garage_id` FOREIGN KEY (`garage_id`) REFERENCES `garage` (`id`)
+    CONSTRAINT `report_data:garage_id` FOREIGN KEY (`garage_id`) REFERENCES `garage` (`id`),
+    INDEX `report_data$garage_id` (`garage_id`),
+    INDEX `report_data$type$garage_id` (`type`, `garage_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Have to change the delimiter from ; to // so that MySQL doesn't interpret ; inside the event as the end of the statement
@@ -46,8 +48,7 @@ DELIMITER //
 CREATE EVENT IF NOT EXISTS `report_data`
 ON SCHEDULE
 -- Run every day starting at the next midnight
-EVERY 1 DAY
-STARTS (TIMESTAMP(CURRENT_DATE) + INTERVAL 1 DAY + INTERVAL 1 HOUR)
+EVERY 1 MINUTE
 DO
 BEGIN
     INSERT INTO `report_data` (`garage_id`, `type`, `time`, `data`)

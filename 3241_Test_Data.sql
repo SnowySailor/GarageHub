@@ -13,7 +13,7 @@ BEGIN
     -- Change to create more or fewer users
     SET @numUsers = 10;
     -- Change to create more or fewer garages
-    SET @numGarages = 50;
+    SET @numGarages = 10;
     SET @i = 0;
 
     -- Create @numUsers users.

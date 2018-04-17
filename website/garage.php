@@ -60,30 +60,32 @@ function postCreateGarage() {
     $aGarageLocation = CSE3241::getArrayElem($aGarageData, 'Location');
     $sGarageName = CSE3241::getArrayElem($aGarageData, 'Name');
     $iManagerId = CSE3241::getArrayElem($aGarageData, 'ManagerId');
+    var_dump($aGarageLocation);
 
     $sError = '';
-    if (is_null($aGarageFloors)) {
+    if (is_null($aGarageFloors) || count($aGarageFloors) == 0) {
         $sError .= ' Spot Counts required.';
     }
-    if (is_null($aGarageLocation)) {
+    if (is_null($aGarageLocation) || count($aGarageLocation) == 0) {
         $sError .= ' Location required.';
+    } else {
+        foreach ($aGarageLocation as $sLoc) {
+            if (!is_string($sLoc) || is_null($sLoc)) {
+                $sError .= ' Location must be of the form [address, city, region, country]';
+                break;
+            }
+        }
     }
-    if (is_null($sGarageName)) {
+    if (is_null($sGarageName) || $sGarageName == '') {
         $sError .= ' Name required.';
     }
-    if (is_null($iManagerId)) {
+    if (is_null($iManagerId) || $iManagerId == 0) {
         $sError .= ' ManagerId required.';
     } else if (is_null(CSE3241::getUser($iManagerId))) {
         $sError .= ' ManagerId is not a valid user id.';
     }
     if (count($aGarageLocation) != 4) {
         $sError .= ' Location must be of the form [address, city, region, country]';
-    }
-    foreach ($aGarageLocation as $aLoc) {
-        if (!is_string($aLoc)) {
-            $sError .= ' Location must be of the form [address, city, region, country]';
-            break;
-        }
     }
 
     // If there were errors, send failure
@@ -140,7 +142,7 @@ function postCreateGarage() {
             $iSuccess = $hDatabase->insert('parking_spot',
                 array(
                     'garage_id' => $iGarageId,
-                    'floor_no' => $iFloorNo,
+                    'floor_no' => ($iFloorNo + 1),
                     'spot_no' => $i
                 )
             )->execute('getAffectedRows');
