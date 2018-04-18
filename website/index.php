@@ -221,6 +221,17 @@ include 'init.php';
                 }
             }
 
+            function onclickCloseRange(garageId, floorId) {
+                var from = getvalue('fromrange');
+                var to = getvalue('torange');
+                resp = httpPost('home.php?q=closerange&garageid=' + garageId + '&floorid=' + floorId + '&from=' + from + '&to=' + to);
+                if (resp) {
+                    showError(resp);
+                } else {
+                    onclickGarageFloor(garageId, floorId);
+                }
+            }
+
             function onclickLogo() {
                 showError();
                 loadDefaultHome();

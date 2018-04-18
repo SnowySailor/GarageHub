@@ -344,6 +344,8 @@ function getGarageFloorPage() {
         // Get the state counts table
         $sContent .= makeStateTable($aStateCounts);
 
+        $sContent .= '<div>Close a range: <input id="fromrange" placeholder="from"/><input id="torange" placeholder="to"/><input type="button" value="Close Range" class="actionbutton" onclick="onclickCloseRange(' . $iGarageId . ',' . $iFloorId . ')"/></div>';
+
         if ($iHasInServiceSpots == '1') {
             // Render the close floor button
             $sContent .= '<div class="inline" id="closefloor"><input class="actionbutton" id="closefloorbtn" value="Close Floor" type="button" onclick="onclickCloseGarageFloor(' . $iGarageId . ',' .$iFloorId .')"/></div>';
@@ -357,6 +359,22 @@ function getGarageFloorPage() {
 
     // Return content
     return $sContent;
+}
+
+function closeGarageRange() {
+    $iFrom = CSE3241::tryParseInt(CSE3241::getRequestParam('from'), -1);
+    $iTo = CSE3241::tryParseInt(CSE3241::getRequestParam('to'), -1);
+    $iGarageId = CSE3241::tryParseInt(CSE3241::getRequestParam('garageid'), -1);
+    $iFloorId = CSE3241::tryParseInt(CSE3241::getRequestParam('floorid'), -1);
+
+    if ($iFloorId < 0 || $iGarageId < 0 || !CSE3241::isUserAuthForGarage($iGarageId)) {
+        CSE3241::failBadRequest('Floor id does not exist or not authorized');
+        return -1;
+    }
+
+    $iSuccess = CSE3241::database()->rawQuery('update parking_spot set state = 3 where garage_id = ? and floor_no = ? and spot_no >= ? and spot_no <= ?', $iGarageId, $iFloorId, $iFrom, $iTo)->execute('getAffectedRows');
+
+    return '';
 }
 
 function showGarageTable() {

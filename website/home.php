@@ -31,6 +31,9 @@ if (CSE3241::isUserLoggedIn()) {
         case 'getreport':
             $sContent = getReport();
             break;
+        case 'closerange':
+            $sContent = closeGarageRange();
+            break;
         case 'garage':
             // Show a specific garage page
             $sContent = getGaragePage();
