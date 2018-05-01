@@ -11,7 +11,7 @@ include 'core.php';
 session_start();
 
 
-if (CSE3241::getConf('httoOnlyCookies')) {
+if (CSE3241::getConf('httpOnlyCookies')) {
     $aCurrentCookieParams = session_get_cookie_params();
     $sId = session_id();
     // Reset PHPSESSID cookie to be httpOnly with the secure parameter = true

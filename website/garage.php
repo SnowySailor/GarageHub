@@ -441,7 +441,7 @@ function makeAddressDisplay($aGarage) {
 
 function makeStateTable($aStateCounts) {
     // available = 1, in-use = 2, out-of-service = 3
-    $aValidStates = array(true,true,true);
+    $aValidStates = array(true, true, true);
 
     $sContent = '<table class="inlinetable">';
     $sContent   .= '<tr>';
@@ -460,8 +460,8 @@ function makeStateTable($aStateCounts) {
     }
 
     for ($i = 0; $i <= 2; $i++) {
-        if ($aValidStates[$i] == true) {
-            $sState = getStateName($i+1);
+        if ($aValidStates[$i]) {
+            $sState = getStateName($i + 1);
             
             $sContent .= '<tr>';
                 $sContent .= '<td>' . $sState . '</td>';
